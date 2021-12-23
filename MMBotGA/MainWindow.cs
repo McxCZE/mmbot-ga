@@ -128,7 +128,7 @@ namespace MMBotGA
             var crossover = new UniformCrossover();
             var mutation = new UniformMutation(true);
             var chromosome = new StrategyChromosome();
-            var population = new Population(500, 1000, chromosome);
+            var population = new Population(500, 1500, chromosome);
             var termination = new FitnessStagnationTermination(15);
             var executor = new ExactParallelTaskExecutor(apiPool.Available);
 

@@ -23,83 +23,12 @@ namespace MMBotGA.data.provider
 
         private static IEnumerable<AllocationDefinition> AllocationDefinitions => new AllocationDefinition[]
         {
-            new()
-            {
-                Exchange = Exchange.Kucoin,
-                Pair = new Pair("KAVA", "USDT"),
-                Balance = 200
-            },
+            //TODO : Dynmické runy, allocationDefinition Ilist ? 
             new()
             {
                 Exchange = Exchange.Binance,
-                Pair = new Pair("LSK", "USDT"),
-                Balance = 200
-            },
-            new()
-            {
-                Exchange = Exchange.Kucoin,
-                Pair = new Pair("BTC", "USDT"),
-                Balance = 10000
-            },
-            new()
-            {
-                Exchange = Exchange.Kucoin,
-                Pair = new Pair("ETH", "USDT"),
-                Balance = 10000
-            },
-            new()
-            {
-                Exchange = Exchange.Kucoin,
-                Pair = new Pair("ZEC", "USDT"),
-                Balance = 10000
-            },
-            new()
-            {
-                Exchange = Exchange.Kucoin,
-                Pair = new Pair("XRP", "USDT"),
-                Balance = 10000
-            },
-            new()
-            {
-                Exchange = Exchange.Kucoin,
-                Pair = new Pair("FTM", "USDT"),
-                Balance = 10000
-            },
-            new()
-            {
-                Exchange = Exchange.Kucoin,
-                Pair = new Pair("LTC", "USDT"),
-                Balance = 10000
-            },
-            new()
-            {
-                Exchange = Exchange.Kucoin,
-                Pair = new Pair("FLUX", "USDT"),
-                Balance = 10000
-            },
-            new()
-            {
-                Exchange = Exchange.Binance,
-                Pair = new Pair("AVAX", "USDT"),
-                Balance = 10000
-            },
-            new()
-            {
-                Exchange = Exchange.Binance,
-                Pair = new Pair("BNB", "USDT"),
-                Balance = 10000
-            },
-            new()
-            {
-                Exchange = Exchange.Binance,
-                Pair = new Pair("SOL", "USDT"),
-                Balance = 10000
-            },
-            new()
-            {
-                Exchange = Exchange.Binance,
-                Pair = new Pair("ADA", "USDT"),
-                Balance = 10000
+                Pair = new Pair("BTCUP", "USDT"),
+                Balance = 500
             }
         };
 
@@ -109,15 +38,23 @@ namespace MMBotGA.data.provider
 
             var downloader = new DefaultDownloader(progressCallback);
             var backtestRange = Settings.DateSettings.Automatic
-                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-60), TimeSpan.FromDays(-365))
+                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date, TimeSpan.FromDays(-120))
                 : Settings.DateSettings.Backtest;
+            var backtestRangeTwo = Settings.DateSettings.Automatic
+            ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-120), TimeSpan.FromDays(-120))
+            : Settings.DateSettings.Backtest;
+            var backtestRangeThree = Settings.DateSettings.Automatic
+            ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-240), TimeSpan.FromDays(-120))
+            : Settings.DateSettings.Backtest;
 
             return Settings.Allocations
                 .Select(x => new Batch(x.ToBatchName(),
                     new[]
                     {
-                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), false, x.Balance),
-                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), true, x.Balance)
+                        //downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), false, x.Balance),
+                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), true, x.Balance),
+                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeTwo), true, x.Balance),
+                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeThree), true, x.Balance)
                     }))
                 .ToArray();
         }
