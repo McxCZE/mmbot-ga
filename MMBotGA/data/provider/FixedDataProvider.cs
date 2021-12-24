@@ -23,29 +23,56 @@ namespace MMBotGA.data.provider
 
         private static IEnumerable<AllocationDefinition> AllocationDefinitions => new AllocationDefinition[]
         {
-            //TODO : Dynmické runy, allocationDefinition Ilist ? 
+            //TODO : Dynamické runy, allocationDefinition Ilist ? 
             new()
             {
                 Exchange = Exchange.Binance,
                 Pair = new Pair("BTCUP", "USDT"),
                 Balance = 500
-            }
+            },
+            new()
+            {
+                Exchange = Exchange.Binance,
+                Pair = new Pair("BTCUP", "USDT"),
+                Balance = 500
+            },
+            new()
+            {
+                Exchange = Exchange.Binance,
+                Pair = new Pair("BTCUP", "USDT"),
+                Balance = 500
+            },
+            new()
+            {
+                Exchange = Exchange.Binance,
+                Pair = new Pair("BTCUP", "USDT"),
+                Balance = 500
+            },
+            new()
+            {
+                Exchange = Exchange.Binance,
+                Pair = new Pair("BTCUP", "USDT"),
+                Balance = 500
+            },
         };
+
 
         public Batch[] GetBacktestData(IProgress progressCallback)
         {
             //File.WriteAllText("allocations.json", JsonConvert.SerializeObject(Settings, Formatting.Indented)); 
 
             var downloader = new DefaultDownloader(progressCallback);
+
+            //divie to 3x graphs, more fluent, without spikes. 
             var backtestRange = Settings.DateSettings.Automatic
                 ? DateTimeRange.FromDiff(DateTime.UtcNow.Date, TimeSpan.FromDays(-120))
                 : Settings.DateSettings.Backtest;
             var backtestRangeTwo = Settings.DateSettings.Automatic
-            ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-120), TimeSpan.FromDays(-120))
-            : Settings.DateSettings.Backtest;
+                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-120), TimeSpan.FromDays(-120))
+                : Settings.DateSettings.Backtest;
             var backtestRangeThree = Settings.DateSettings.Automatic
-            ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-240), TimeSpan.FromDays(-120))
-            : Settings.DateSettings.Backtest;
+                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-240), TimeSpan.FromDays(-120))
+                : Settings.DateSettings.Backtest;
 
             return Settings.Allocations
                 .Select(x => new Batch(x.ToBatchName(),

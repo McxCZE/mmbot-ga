@@ -53,19 +53,31 @@ namespace MMBotGA.ga
         {
             return geneIndex switch
             { // max is exclusive
+                //Exponent
                 0 => new Gene(RandomizationProvider.Current.GetDouble(1, 20)),
-                1 => new Gene(RandomizationProvider.Current.GetDouble(-100, 100)),
+                //Trend. Pref (-100,0) <- Close positions faster, do not hold position over normalized profit.)
+                1 => new Gene(RandomizationProvider.Current.GetDouble(-100, 0)),
+                //Type of Rebalance to be used.
                 2 => new Gene(RandomizationProvider.Current.GetInt(0, 5)),
+                //stDeviation.
                 3 => new Gene(RandomizationProvider.Current.GetDouble(1, 240)),
+                //Smooth Moving Average (SMA).
                 4 => new Gene(RandomizationProvider.Current.GetDouble(1, 240)),
-                //0.5-2
+                //Manual adjust (-5/+5) as current. 
                 5 => new Gene(RandomizationProvider.Current.GetDouble(0.95, 1.05)),
+                //Mult. Raise.
                 6 => new Gene(RandomizationProvider.Current.GetDouble(1, 1000)),
+                //Mult. Fall.
                 7 => new Gene(RandomizationProvider.Current.GetDouble(0.1, 10)),
+                //Mult. Cap.
                 8 => new Gene(RandomizationProvider.Current.GetDouble(0, 100)),
+                //Mult. Modes.
                 9 => new Gene(RandomizationProvider.Current.GetInt(0, 5)),
+                //Strategy - Underlying Gamma Functions.
                 10 => new Gene(RandomizationProvider.Current.GetInt(0, 5)),
+                //Dynmult (on/off).
                 11 => new Gene(RandomizationProvider.Current.GetInt(0, 2)),
+                //Freeze Spread (on/off).
                 12 => new Gene(RandomizationProvider.Current.GetInt(0, 2)),
                 _ => new Gene(),
             };
