@@ -63,14 +63,19 @@ namespace MMBotGA.ga.fitness
             var days = (last.Tm - first.Tm) / 86400000d;
             var tradesPerDay = trades / days;
 
-            const int mean = 10;
-            const int delta = 5; // target trade range is 5 - 15 trades per day
+            const int mean = 15;
+            const int delta = 7; // target trade range is 8 - 22 trades per day
 
             var x = Math.Abs(tradesPerDay - mean); // 0 - inf, 0 is best
             var y = Math.Max(x - delta, 0) + 1; // 1 - inf, 1 is best ... 
             var r = 1 / y;
 
-            return r * alerts;
+            var alertsRatio = alerts / trades;
+
+            //Pokud mám více jak 3% alertů v celém spektru, špatný backtest.
+            if (alertsRatio > 0.03) { return 0; } else { return r * alerts; }
+
+            
 
             //return Normalize(trades, 1000, 3000, null) * alerts;
         }

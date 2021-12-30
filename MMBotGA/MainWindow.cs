@@ -128,8 +128,15 @@ namespace MMBotGA
             var crossover = new UniformCrossover();
             var mutation = new UniformMutation(true);
             var chromosome = new StrategyChromosome();
-            var population = new Population(500, 1500, chromosome);
-            var termination = new FitnessStagnationTermination(15);
+
+            //1h 49m - 1 pár. pop (2,2K - 3,4K), Stagnation (15)
+            //var population = new Population(2200, 3400, chromosome);
+            //var termination = new FitnessStagnationTermination(15);
+
+            //1h 49m/2 - 1 pár. pop (800, 1500), Stagnation (9999) <- Nekonečná prakticky.
+            var population = new Population(800, 1500, chromosome);
+            //nekonečný run GA.
+            var termination = new FitnessStagnationTermination(9999);
             var executor = new ExactParallelTaskExecutor(apiPool.Available);
 
             using (var csvMerged = new CsvWrapper<AggregatedChromosomeCsvMap, StrategyChromosome>("MASTER"))

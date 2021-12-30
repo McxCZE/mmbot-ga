@@ -7,7 +7,7 @@ namespace MMBotGA.ga
     class StrategyChromosome : ChromosomeBase
     {
         public StrategyChromosome()
-            : base(13)
+            : base(14)
         {
             CreateGenes();
         }
@@ -32,11 +32,13 @@ namespace MMBotGA.ga
         public double Cap => this.GetGene<double>(8);
 
         readonly string[] modes = new[] { "disabled", "independent", "together", "alternate", "half_alternate" };
-        public string Mode => modes[this.GetGene<int>(9)];
+        //public string Mode => modes[this.GetGene<int>(9)];
+        public string Mode => "independent";
 
         public bool DynMult => this.GetGene<int>(11) == 1;
         public bool Freeze => this.GetGene<int>(12) == 1;
 
+        public int SecondaryOrder => this.GetGene<int>(13);
         #endregion
 
         public string ID { get; set; }
@@ -56,13 +58,13 @@ namespace MMBotGA.ga
                 //Exponent
                 0 => new Gene(RandomizationProvider.Current.GetDouble(1, 20)),
                 //Trend. Pref (-100,0) <- Close positions faster, do not hold position over normalized profit.)
-                1 => new Gene(RandomizationProvider.Current.GetDouble(-100, 0)),
+                1 => new Gene(RandomizationProvider.Current.GetDouble(-100, 10)),
                 //Type of Rebalance to be used.
                 2 => new Gene(RandomizationProvider.Current.GetInt(0, 5)),
                 //stDeviation.
-                3 => new Gene(RandomizationProvider.Current.GetDouble(1, 240)),
+                3 => new Gene(RandomizationProvider.Current.GetDouble(1, 30)),
                 //Smooth Moving Average (SMA).
-                4 => new Gene(RandomizationProvider.Current.GetDouble(1, 240)),
+                4 => new Gene(RandomizationProvider.Current.GetDouble(1, 30)),
                 //Manual adjust (-5/+5) as current. 
                 5 => new Gene(RandomizationProvider.Current.GetDouble(0.95, 1.05)),
                 //Mult. Raise.
@@ -79,6 +81,8 @@ namespace MMBotGA.ga
                 11 => new Gene(RandomizationProvider.Current.GetInt(0, 2)),
                 //Freeze Spread (on/off).
                 12 => new Gene(RandomizationProvider.Current.GetInt(0, 2)),
+                //SecondaryOrder distance in %.
+                13 => new Gene(RandomizationProvider.Current.GetInt(0, 100)),
                 _ => new Gene(),
             };
         }

@@ -29,7 +29,7 @@ namespace MMBotGA.ga
                     Reverse = false,
                     Invert = false,
                     Ifutures = false,
-                    // Order2 = 50
+                    Order2 = chromosome.SecondaryOrder,
                 },
                 RunRequest = new RunRequest
                 {
@@ -39,7 +39,8 @@ namespace MMBotGA.ga
                     Invert = false,
                     NegBal = false,
                     InitPrice = 0,
-                    Spend = false,
+                    // Spend true - Jinak se nekonečně nafukuje možnost vykrýt pády. 
+                    Spend = true,
                     Config = new Config
                     {
                         Strategy = new Strategy
@@ -47,7 +48,8 @@ namespace MMBotGA.ga
                             Type = "gamma",
                             Function = chromosome.Function,
                             Trend = chromosome.Trend,
-                            Reinvest = true,
+                            //Vypnout Reinvest - základ každého testování. 
+                            Reinvest = false,
 
                             Exponent = chromosome.Exponent,
                             Rebalance = chromosome.Rebalance.ToString()
@@ -66,7 +68,7 @@ namespace MMBotGA.ga
                         DynmultCap = chromosome.Cap,
                         SellStepMult = chromosome.Mult,
                         BuyStepMult = chromosome.Mult,
-                        //SecondaryOrder = 50,
+                        SecondaryOrder = chromosome.SecondaryOrder,
                     }
                 }
             };

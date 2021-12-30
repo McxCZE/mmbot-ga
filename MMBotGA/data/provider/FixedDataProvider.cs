@@ -8,6 +8,7 @@ using MMBotGA.ga.abstraction;
 
 namespace MMBotGA.data.provider
 {
+
     internal class FixedDataProvider : IDataProvider
     {
         private const string DataFolder = "data";
@@ -27,33 +28,9 @@ namespace MMBotGA.data.provider
             new()
             {
                 Exchange = Exchange.Binance,
-                Pair = new Pair("BTCUP", "USDT"),
+                Pair = new Pair("ADAUP", "USDT"),
                 Balance = 500
-            },
-            new()
-            {
-                Exchange = Exchange.Binance,
-                Pair = new Pair("BTCUP", "USDT"),
-                Balance = 500
-            },
-            new()
-            {
-                Exchange = Exchange.Binance,
-                Pair = new Pair("BTCUP", "USDT"),
-                Balance = 500
-            },
-            new()
-            {
-                Exchange = Exchange.Binance,
-                Pair = new Pair("BTCUP", "USDT"),
-                Balance = 500
-            },
-            new()
-            {
-                Exchange = Exchange.Binance,
-                Pair = new Pair("BTCUP", "USDT"),
-                Balance = 500
-            },
+            }
         };
 
 
@@ -63,7 +40,7 @@ namespace MMBotGA.data.provider
 
             var downloader = new DefaultDownloader(progressCallback);
 
-            //divie to 3x graphs, more fluent, without spikes. 
+            //divide to 3x graphs, more fluent, without spikes. 
             var backtestRange = Settings.DateSettings.Automatic
                 ? DateTimeRange.FromDiff(DateTime.UtcNow.Date, TimeSpan.FromDays(-120))
                 : Settings.DateSettings.Backtest;
