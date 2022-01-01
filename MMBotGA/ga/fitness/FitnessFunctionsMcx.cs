@@ -11,6 +11,25 @@ namespace MMBotGA.ga.fitness
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(FitnessFunctionsMcx));
 
+        public static double MaxCost(BacktestRequest request, ICollection<RunResponse> results)
+        {
+            double cost = 0;
+            double maxCost = 0;
+            
+            foreach (var trade in results)
+            {
+                cost = cost + (trade.Sz * trade.Pr);
+                if (cost > maxCost) { maxCost = cost; }
+            }
+
+            var balance = request.RunRequest.Balance;
+            var budgetRatio = 1 - (maxCost / balance);
+
+            //Čím menší MaxCost tím lepší Fitness.
+            //Pokud jsi zainvestoval více jak 70% dostáváš penalizaci v rámci tvé váhy. (0.1 x -1)
+            if (budgetRatio < 0.30) { return -1; } else { return budgetRatio; }
+        }
+
         public static double LowerPositionOverall(BacktestRequest request, ICollection<RunResponse> results, double balancePercentage)
         {
             if (results.Count < 1) return 0;
@@ -132,7 +151,7 @@ namespace MMBotGA.ga.fitness
 
             if (profit == 0) return 0;
 
-            return Normalize(profit, 1, 3, null);
+            return Normalize(profit, 0.6, 1, null);
         }
 
         public static double PnlProfitPerYear(BacktestRequest request, ICollection<RunResponse> results)
@@ -151,16 +170,18 @@ namespace MMBotGA.ga.fitness
             return Normalize(profit, 1, 3, null);
         }
 
-        public static double NpaRrr(BacktestRequest request, ICollection<RunResponse> results)
+        public static double NpaRRR(BacktestRequest request, ICollection<RunResponse> results)
         {
             //const double nppyWeight = 0.00;
-            const double pppyWeight = 0.15;
-            const double ipdrWeight = 0.20;
+            const double pppyWeight = 0.10;
+            const double ipdrWeight = 0.10;
             const double lpoWeight = 0.10;
-            const double rrrWeight = 0.05;
-            const double tradeCountWeight = 0.5;
+            const double rrrWeight = 0.10;
+            const double tradeCountWeight = 0.50;
+            const double maxCostWeight = 0.10;
 
-            const double balanceThreshold = 0.15;
+            //Snaž se držet maximálně kolem pozice 10% celkového budgetu.
+            const double balanceThreshold = 0.10;
 
 
             var nppyEval = 0; //nppyWeight * NormalizedProfitPerYear(request, results);
@@ -169,10 +190,11 @@ namespace MMBotGA.ga.fitness
             var tradeCountEval = tradeCountWeight * TradeCountFactor(results);
             var ipdrEval = ipdrWeight * IncomePerDayRatio(results);
             var lowerPosEval = lpoWeight * LowerPositionOverall(request, results, balanceThreshold);
+            var maxCostEval = maxCostWeight * MaxCost(request, results);
 
-            var fitness = nppyEval + pppyEval + ipdrEval + rrrEval + tradeCountEval + lowerPosEval;
+            var fitness = (nppyEval + pppyEval + ipdrEval + rrrEval + tradeCountEval + lowerPosEval + maxCostEval);
 
-            Log.Debug($"Fitness : {fitness}, IPDR : {ipdrEval}, LPO : {lowerPosEval}");
+            Log.Debug($"MaxCostEval : {maxCostEval}");
 
             return fitness;
         }

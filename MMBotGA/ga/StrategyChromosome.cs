@@ -15,9 +15,17 @@ namespace MMBotGA.ga
         #region Strategy
         public double Exponent => this.GetGene<double>(0);
         public double Trend => this.GetGene<double>(1);
-        public int Rebalance => this.GetGene<int>(2);
 
-        readonly string[] functions = new[] { "halfhalf", "keepvalue", "exponencial", "invsqrtsinh", "gauss" };
+        //Roztoč si Rebalance jak potřebuješ.
+        //public int Rebalance => this.GetGene<int>(2);
+        //Pokaždé použij SmartRebalance.
+        public int Rebalance => 4;
+
+        //readonly string[] functions = new[] { "halfhalf", "keepvalue", "exponencial", "invsqrtsinh", "gauss" };
+        //Vypnutý Cosecant, dělal prasečiny.
+
+        //Half-Half  se jeví jako velmi zajímavý.
+        readonly string[] functions = new[] { "halfhalf", "keepvalue", "exponencial", "gauss" };
         public string Function => functions[this.GetGene<int>(10)];
 
         #endregion
@@ -62,11 +70,11 @@ namespace MMBotGA.ga
                 //Type of Rebalance to be used.
                 2 => new Gene(RandomizationProvider.Current.GetInt(0, 5)),
                 //stDeviation.
-                3 => new Gene(RandomizationProvider.Current.GetDouble(1, 30)),
+                3 => new Gene(RandomizationProvider.Current.GetDouble(1, 60)),
                 //Smooth Moving Average (SMA).
-                4 => new Gene(RandomizationProvider.Current.GetDouble(1, 30)),
-                //Manual adjust (-5/+5) as current. 
-                5 => new Gene(RandomizationProvider.Current.GetDouble(0.95, 1.05)),
+                4 => new Gene(RandomizationProvider.Current.GetDouble(1, 60)),
+                //Manual adjust (-30/+30) as current. 
+                5 => new Gene(RandomizationProvider.Current.GetDouble(0.70, 1.30)),
                 //Mult. Raise.
                 6 => new Gene(RandomizationProvider.Current.GetDouble(1, 1000)),
                 //Mult. Fall.
@@ -76,13 +84,13 @@ namespace MMBotGA.ga
                 //Mult. Modes.
                 9 => new Gene(RandomizationProvider.Current.GetInt(0, 5)),
                 //Strategy - Underlying Gamma Functions.
-                10 => new Gene(RandomizationProvider.Current.GetInt(0, 5)),
+                10 => new Gene(RandomizationProvider.Current.GetInt(0, 4)),
                 //Dynmult (on/off).
                 11 => new Gene(RandomizationProvider.Current.GetInt(0, 2)),
                 //Freeze Spread (on/off).
                 12 => new Gene(RandomizationProvider.Current.GetInt(0, 2)),
-                //SecondaryOrder distance in %.
-                13 => new Gene(RandomizationProvider.Current.GetInt(0, 100)),
+                //SecondaryOrder distance in %. (Zalimitovat na např. 30% ? Pozn. Nadsazuje to vysoko.)
+                13 => new Gene(RandomizationProvider.Current.GetInt(0, 150)),
                 _ => new Gene(),
             };
         }

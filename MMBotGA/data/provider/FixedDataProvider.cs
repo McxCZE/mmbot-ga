@@ -27,9 +27,39 @@ namespace MMBotGA.data.provider
             //TODO : Dynamické runy, allocationDefinition Ilist ? 
             new()
             {
+                Exchange = Exchange.Ftx,
+                Pair = new Pair("AVAX", "PERP"),
+                Balance = 1000
+            },
+            new()
+            {
+                Exchange = Exchange.Ftx,
+                Pair = new Pair("DOT", "PERP"),
+                Balance = 1000
+            },
+            new()
+            {
+                Exchange = Exchange.Ftx,
+                Pair = new Pair("UNI", "PERP"),
+                Balance = 1000
+            },
+            new()
+            {
+                Exchange = Exchange.Ftx,
+                Pair = new Pair("MATIC", "PERP"),
+                Balance = 1000
+            },
+            new()
+            {
+                Exchange = Exchange.Ftx,
+                Pair = new Pair("SOL", "PERP"),
+                Balance = 1000
+            },
+            new()
+            {
                 Exchange = Exchange.Binance,
                 Pair = new Pair("ADAUP", "USDT"),
-                Balance = 500
+                Balance = 600
             }
         };
 
@@ -56,9 +86,12 @@ namespace MMBotGA.data.provider
                     new[]
                     {
                         //downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), false, x.Balance),
-                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), true, x.Balance),
-                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeTwo), true, x.Balance),
-                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeThree), true, x.Balance)
+                        //downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), true, x.Balance),
+                        //downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeTwo), true, x.Balance),
+                        //downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeThree), true, x.Balance),
+                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), false, x.Balance),
+                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeTwo), false, x.Balance),
+                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeThree), false, x.Balance)
                     }))
                 .ToArray();
         }

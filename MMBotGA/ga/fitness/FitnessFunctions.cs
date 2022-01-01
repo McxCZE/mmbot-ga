@@ -8,6 +8,7 @@ namespace MMBotGA.ga.fitness
 {
     internal static class FitnessFunctions
     {
+
         public static double RRR(ICollection<RunResponse> results)
         {
             if (results.Count < 1) return 0;

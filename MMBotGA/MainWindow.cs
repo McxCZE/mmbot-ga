@@ -135,8 +135,8 @@ namespace MMBotGA
 
             //1h 49m/2 - 1 pár. pop (800, 1500), Stagnation (9999) <- Nekonečná prakticky.
             var population = new Population(800, 1500, chromosome);
-            //nekonečný run GA.
-            var termination = new FitnessStagnationTermination(9999);
+            //nekonečný run GA. = Nastav Termination na 9999
+            var termination = new FitnessStagnationTermination(15);
             var executor = new ExactParallelTaskExecutor(apiPool.Available);
 
             using (var csvMerged = new CsvWrapper<AggregatedChromosomeCsvMap, StrategyChromosome>("MASTER"))
