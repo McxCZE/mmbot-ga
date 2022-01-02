@@ -41,7 +41,7 @@ namespace MMBotGA.ga
 
         readonly string[] modes = new[] { "disabled", "independent", "together", "alternate", "half_alternate" };
         //public string Mode => modes[this.GetGene<int>(9)];
-        public string Mode => "independent";
+        public string Mode => "independent"; //nastavený statický Independent, je odzkoušený. 
 
         public bool DynMult => this.GetGene<int>(11) == 1;
         public bool Freeze => this.GetGene<int>(12) == 1;

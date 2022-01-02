@@ -28,38 +28,8 @@ namespace MMBotGA.data.provider
             new()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("AVAX", "PERP"),
+                Pair = new Pair("ATOM", "PERP"),
                 Balance = 1000
-            },
-            new()
-            {
-                Exchange = Exchange.Ftx,
-                Pair = new Pair("DOT", "PERP"),
-                Balance = 1000
-            },
-            new()
-            {
-                Exchange = Exchange.Ftx,
-                Pair = new Pair("UNI", "PERP"),
-                Balance = 1000
-            },
-            new()
-            {
-                Exchange = Exchange.Ftx,
-                Pair = new Pair("MATIC", "PERP"),
-                Balance = 1000
-            },
-            new()
-            {
-                Exchange = Exchange.Ftx,
-                Pair = new Pair("SOL", "PERP"),
-                Balance = 1000
-            },
-            new()
-            {
-                Exchange = Exchange.Binance,
-                Pair = new Pair("ADAUP", "USDT"),
-                Balance = 600
             }
         };
 
