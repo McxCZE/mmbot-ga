@@ -22,7 +22,7 @@ namespace MMBotGA.ga.fitness
             };
         }
 
-        public static double MaxCost(BacktestRequest request, ICollection<RunResponse> results)
+        public static double MaxCost(BacktestRequest request, ICollection<RunResponse> results, double maxCostThreshold)
         {
             double cost = 0;
             double maxCost = 0;
@@ -34,11 +34,15 @@ namespace MMBotGA.ga.fitness
             }
 
             var balance = request.RunRequest.Balance;
-            var budgetRatio = 1 - (maxCost / balance);
+            var budgetRatio = (maxCost / balance);
+            var budgetRatioInverse = 1 - (maxCost / balance);
 
             //Čím menší MaxCost tím lepší Fitness.
-            //Pokud jsi zainvestoval více jak 55% dostáváš penalizaci v rámci tvé váhy. (0.1 x -1)
-            if (budgetRatio < 0.45) { return -1; } else { return budgetRatio; }
+            //Pokud jsi zainvestoval méně jak 50% dostáváš boost do budgetRatio. 
+            //Myšlenka je motivovat vývoj k menšímu (většímu) budgetRatio, než-li penalizovat generaci.
+            if (budgetRatio < maxCostThreshold) { return 1; }
+
+            return budgetRatioInverse;
         }
 
         public static double LowerPositionOverall(BacktestRequest request, ICollection<RunResponse> results, double balancePercentage)
@@ -183,31 +187,31 @@ namespace MMBotGA.ga.fitness
 
         public static double NpaRRR(BacktestRequest request, ICollection<RunResponse> results)
         {
-            //const double nppyWeight = 0.00;
+            const double nppyWeight = 0.05;
             const double pppyWeight = 0.10;
-            const double ipdrWeight = 0.05;
-            const double lpoWeight = 0.15;
-            const double rrrWeight = 0.10;
-            const double tradeCountWeight = 0.50;
+            const double ipdrWeight = 0.10;
+            const double lpoWeight = 0.10;
+            const double rrrWeight = 0.15;
+            const double tradeCountWeight = 0.40;
             const double maxCostWeight = 0.10;
 
-            //Snaž se držet maximálně kolem pozice 15% celkového budgetu.
-            const double balanceThreshold = 0.15;
+            //Pozici nad balanceThreshold = x% penalizuj.
+            const double maxCostThreshold = 0.40;
+            const double balanceThreshold = maxCostThreshold / 4;
 
-
-            var nppyEval = 0; //nppyWeight * NormalizedProfitPerYear(request, results);
+            var nppyEval = nppyWeight * NormalizedProfitPerYear(request, results);
             var pppyEval = pppyWeight * PnlProfitPerYear(request, results);
             var rrrEval = rrrWeight * Rrr(results);
             var tradeCountEval = tradeCountWeight * TradeCountFactor(results);
             var ipdrEval = ipdrWeight * IncomePerDayRatio(results);
             var lowerPosEval = lpoWeight * LowerPositionOverall(request, results, balanceThreshold);
-            var maxCostEval = maxCostWeight * MaxCost(request, results);
+            var maxCostEval = maxCostWeight * MaxCost(request, results, maxCostThreshold);
             var eventCheck = CheckForEvents(results);
 
             var fitness = (nppyEval + pppyEval + ipdrEval + rrrEval + tradeCountEval + lowerPosEval + maxCostEval) * eventCheck;
 
             //Formát výpisu zachovat, čárka a mezera se používají v LogAnalyzer.ps1 dle které se splitují hodnoty !
-            Log.Info($"Fitness : {fitness}, nppyEval : {nppyEval}, pppyEval : {pppyEval}, ipdrEval : {ipdrEval}, rrrEval : {rrrEval}, tradeCountEval : {tradeCountEval}, lowerPosEval : {lowerPosEval}, MaxCostEval : {maxCostEval}, EventCheck : {eventCheck}");
+            //Log.Info($"Fitness : {fitness}, nppyEval : {nppyEval}, pppyEval : {pppyEval}, ipdrEval : {ipdrEval}, rrrEval : {rrrEval}, tradeCountEval : {tradeCountEval}, lowerPosEval : {lowerPosEval}, MaxCostEval : {maxCostEval}, EventCheck : {eventCheck}");
 
             return fitness;
         }

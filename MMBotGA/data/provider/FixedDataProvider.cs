@@ -28,7 +28,7 @@ namespace MMBotGA.data.provider
             new()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("ATOM", "PERP"),
+                Pair = new Pair("CAKE", "PERP"),
                 Balance = 1000
             }
         };
