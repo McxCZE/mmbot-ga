@@ -129,14 +129,13 @@ namespace MMBotGA
             var mutation = new UniformMutation(true);
             var chromosome = new StrategyChromosome();
 
-            //1h 49m - 1 pár. pop (2,2K - 3,4K), Stagnation (15)
-            //var population = new Population(2200, 3400, chromosome);
-            //var termination = new FitnessStagnationTermination(15);
 
-            //1h 49m/2 - 1 pár. pop (800, 1500), Stagnation (9999) <- Nekonečná prakticky.
-            var population = new Population(800, 1500, chromosome);
+            var population = new Population(4500, 6500, chromosome);
+
+            // pop (800, 1500)
+            //var population = new Population(800, 1500, chromosome);
             //nekonečný run GA. = Nastav Termination na 9999
-            var termination = new FitnessStagnationTermination(300); //min. 30. Jinak skončí v "půlce" počítání. 
+            var termination = new FitnessStagnationTermination(30); //min. 30. Jinak skončí v "půlce" počítání. 
             var executor = new ExactParallelTaskExecutor(apiPool.Available);
 
             using (var csvMerged = new CsvWrapper<AggregatedChromosomeCsvMap, StrategyChromosome>("MASTER"))

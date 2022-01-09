@@ -11,6 +11,17 @@ namespace MMBotGA.ga.fitness
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(FitnessFunctionsMcx));
 
+        public static double BalanceTheBalance(ICollection<RunResponse> results, BacktestRequest request, double minBalance, double maxBalance)
+        {
+            var minBalanceThreshold = request.RunRequest.Balance * minBalance;
+            var maxBalanceThreshold = request.RunRequest.Balance * maxBalance;
+
+            //Pokud je pozice větší jak maxBalanceThreshold, zahazuj (vrať 0), pokud je pozice menší jak maxBalance a větší jak minBalance vrať jedna
+            //Pokud je ale i zároveň menší jak minBalance zahazuj (vrať 0). 
+            if (results.Where(x => x.Ps * x.Pr > maxBalanceThreshold).Count() > 1) { return 0; } else { return 1; };
+
+            //if (results.Where(x => x.Ps * x.Pr > minBalanceThreshold).Count() > 1) { return 1; } else { return 0; };
+        }
         public static double CheckForEvents(ICollection<RunResponse> results)
         {
             if (results.Where(x => x.Event != null).Where(x => x.Event == "margin_call").Count() > 0)
@@ -126,6 +137,11 @@ namespace MMBotGA.ga.fitness
 
             var totalDays = (lastResult.Tm - firstResult.Tm) / 86400000;
 
+            if (totalDays <= 0)
+            {
+                return 0;
+            }
+
             var backtestStartingPoint = firstResult.Tm;
 
             var goodDay = 0;
@@ -188,16 +204,22 @@ namespace MMBotGA.ga.fitness
         public static double NpaRRR(BacktestRequest request, ICollection<RunResponse> results)
         {
             const double nppyWeight = 0.05;
-            const double pppyWeight = 0.10;
+            const double pppyWeight = 0.05;
             const double ipdrWeight = 0.10;
-            const double lpoWeight = 0.10;
-            const double rrrWeight = 0.15;
+            const double lpoWeight = 0.15;
+            const double rrrWeight = 0.10;
             const double tradeCountWeight = 0.40;
             const double maxCostWeight = 0.10;
+            const double minMaxBalanceTheBalanceWeight = 0.05;
 
-            //Pozici nad balanceThreshold = x% penalizuj.
-            const double maxCostThreshold = 0.40;
-            const double balanceThreshold = maxCostThreshold / 4;
+            //Přes 40% 
+            const double maxCostThreshold = 0.45;
+            const double balanceThreshold = maxCostThreshold / 5;
+
+            //Pozici nad 45% balance, zahazuj
+            //Pozici pod 37% balance, zahazuj
+            const double maxBalance = 0.50;
+            const double minBalance = 0.37;
 
             var nppyEval = nppyWeight * NormalizedProfitPerYear(request, results);
             var pppyEval = pppyWeight * PnlProfitPerYear(request, results);
@@ -206,9 +228,10 @@ namespace MMBotGA.ga.fitness
             var ipdrEval = ipdrWeight * IncomePerDayRatio(results);
             var lowerPosEval = lpoWeight * LowerPositionOverall(request, results, balanceThreshold);
             var maxCostEval = maxCostWeight * MaxCost(request, results, maxCostThreshold);
+            var minMaxBalanceTheBalanceEval = minMaxBalanceTheBalanceWeight * BalanceTheBalance(results, request, minBalance, maxBalance);
             var eventCheck = CheckForEvents(results);
 
-            var fitness = (nppyEval + pppyEval + ipdrEval + rrrEval + tradeCountEval + lowerPosEval + maxCostEval) * eventCheck;
+            var fitness = (nppyEval + pppyEval + ipdrEval + rrrEval + tradeCountEval + lowerPosEval + maxCostEval + minMaxBalanceTheBalanceEval) * eventCheck;
 
             //Formát výpisu zachovat, čárka a mezera se používají v LogAnalyzer.ps1 dle které se splitují hodnoty !
             //Log.Info($"Fitness : {fitness}, nppyEval : {nppyEval}, pppyEval : {pppyEval}, ipdrEval : {ipdrEval}, rrrEval : {rrrEval}, tradeCountEval : {tradeCountEval}, lowerPosEval : {lowerPosEval}, MaxCostEval : {maxCostEval}, EventCheck : {eventCheck}");

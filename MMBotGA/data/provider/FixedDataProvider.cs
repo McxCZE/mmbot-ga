@@ -25,12 +25,67 @@ namespace MMBotGA.data.provider
         private static IEnumerable<AllocationDefinition> AllocationDefinitions => new AllocationDefinition[]
         {
             //TODO : Dynamické runy, allocationDefinition Ilist ? 
+            //new()
+            //{
+            //    Exchange = Exchange.Binance,
+            //    Pair = new Pair("ADAUP", "USDT"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("ATOM", "PERP"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("DOT", "PERP"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("LUNA", "PERP"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("SOL", "PERP"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("CAKE", "PERP"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("UNI", "PERP"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("MATIC", "PERP"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("AVAX", "PERP"),
+            //    Balance = 1000
+            //},
             new()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("CAKE", "PERP"),
+                Pair = new Pair("SOL", "PERP"),
                 Balance = 1000
             }
+
         };
 
 
@@ -50,6 +105,11 @@ namespace MMBotGA.data.provider
             var backtestRangeThree = Settings.DateSettings.Automatic
                 ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-240), TimeSpan.FromDays(-120))
                 : Settings.DateSettings.Backtest;
+
+            List<Batch> settingsAllocations = new List<Batch>();
+
+            //Batch backtestRangeDyn = new Batch(settingsAllocations.Select(x => x)));
+            //settingsAllocations.Add();
 
             return Settings.Allocations
                 .Select(x => new Batch(x.ToBatchName(),

@@ -17,9 +17,9 @@ namespace MMBotGA.ga
         public double Trend => this.GetGene<double>(1);
 
         //Roztoč si Rebalance jak potřebuješ.
-        //public int Rebalance => this.GetGene<int>(2);
+        public int Rebalance => this.GetGene<int>(2);
         //Pokaždé použij SmartRebalance.
-        public int Rebalance => 4;
+        //public int Rebalance => 4;
 
         //readonly string[] functions = new[] { "halfhalf", "keepvalue", "exponencial", "invsqrtsinh", "gauss" };
         //Vypnutý Cosecant, dělal prasečiny.
@@ -90,7 +90,7 @@ namespace MMBotGA.ga
                 //Freeze Spread (on/off).
                 12 => new Gene(RandomizationProvider.Current.GetInt(0, 2)),
                 //SecondaryOrder distance in %. (Zalimitovat na např. 30% ? Pozn. Nadsazuje to vysoko.)
-                13 => new Gene(RandomizationProvider.Current.GetInt(0, 150)),
+                13 => new Gene(RandomizationProvider.Current.GetInt(0, 0)),
                 _ => new Gene(),
             };
         }
