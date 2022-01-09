@@ -130,7 +130,7 @@ namespace MMBotGA
             var chromosome = new StrategyChromosome();
 
 
-            var population = new Population(4500, 6500, chromosome);
+            var population = new Population(1000, 1500, chromosome);
 
             // pop (800, 1500)
             //var population = new Population(800, 1500, chromosome);
