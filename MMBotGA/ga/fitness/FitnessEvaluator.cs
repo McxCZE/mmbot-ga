@@ -10,7 +10,6 @@ using GeneticSharp.Domain.Fitnesses;
 using log4net;
 using MMBotGA.backtest;
 using MMBotGA.dto;
-using MMBotGA.ga.execution;
 using Terminal.Gui;
 
 namespace MMBotGA.ga.fitness
@@ -49,7 +48,8 @@ namespace MMBotGA.ga.fitness
                 var result = await _backtest.TestAsync(request);
                 stopwatch.Stop();
 
-                chromosome.Statistics = StatisticsEvaluator.Evaluate(request, result.Data);
+                chromosome.Statistics = StatisticsEvaluator.Evaluate(request, result.Data ?? new List<RunResponse>());
+                chromosome.FitnessComposition = result.Fitness;
 
                 Application.MainLoop.Invoke(() =>
                 {
@@ -57,11 +57,11 @@ namespace MMBotGA.ga.fitness
                 });
 
                 Log.Debug($"Done in {stopwatch.ElapsedMilliseconds} ms: {result.Fitness}");
-                return result.Fitness;
+                return result.Fitness.Fitness;
             }
             catch (Exception e)
             {
-                Log.Error($"Exception while evaluating fitness.", e);
+                Log.Error("Exception while evaluating fitness.", e);
                 throw;
             }
         }

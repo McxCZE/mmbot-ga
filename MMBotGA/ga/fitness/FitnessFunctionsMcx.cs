@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using log4net;
 using MMBotGA.backtest;
@@ -201,8 +202,10 @@ namespace MMBotGA.ga.fitness
             return Normalize(profit, 1, 3, null);
         }
 
-        public static double NpaRRR(BacktestRequest request, ICollection<RunResponse> results)
+        public static FitnessComposition NpaRRR(BacktestRequest request, ICollection<RunResponse> results)
         {
+            if (results == null || results.Count == 0) return new FitnessComposition();
+
             const double nppyWeight = 0.05;
             const double pppyWeight = 0.05;
             const double ipdrWeight = 0.10;
@@ -221,22 +224,40 @@ namespace MMBotGA.ga.fitness
             const double maxBalance = 0.50;
             const double minBalance = 0.37;
 
-            var nppyEval = nppyWeight * NormalizedProfitPerYear(request, results);
-            var pppyEval = pppyWeight * PnlProfitPerYear(request, results);
-            var rrrEval = rrrWeight * Rrr(results);
-            var tradeCountEval = tradeCountWeight * TradeCountFactor(results);
-            var ipdrEval = ipdrWeight * IncomePerDayRatio(results);
-            var lowerPosEval = lpoWeight * LowerPositionOverall(request, results, balanceThreshold);
-            var maxCostEval = maxCostWeight * MaxCost(request, results, maxCostThreshold);
-            var minMaxBalanceTheBalanceEval = minMaxBalanceTheBalanceWeight * BalanceTheBalance(results, request, minBalance, maxBalance);
+            //Debug
+            Debug.Assert(Math.Abs(nppyWeight + pppyWeight + ipdrWeight + lpoWeight + rrrWeight + tradeCountWeight + maxCostWeight + minMaxBalanceTheBalanceWeight - 1) < 0.01);
+
+
+            //var nppyEval = nppyWeight * NormalizedProfitPerYear(request, results);
+            //var pppyEval = pppyWeight * PnlProfitPerYear(request, results);
+            //var rrrEval = rrrWeight * Rrr(results);
+            //var tradeCountEval = tradeCountWeight * TradeCountFactor(results);
+            //var ipdrEval = ipdrWeight * IncomePerDayRatio(results);
+            //var lowerPosEval = lpoWeight * LowerPositionOverall(request, results, balanceThreshold);
+            //var maxCostEval = maxCostWeight * MaxCost(request, results, maxCostThreshold);
+            //var minMaxBalanceTheBalanceEval = minMaxBalanceTheBalanceWeight * BalanceTheBalance(results, request, minBalance, maxBalance);
             var eventCheck = CheckForEvents(results);
 
-            var fitness = (nppyEval + pppyEval + ipdrEval + rrrEval + tradeCountEval + lowerPosEval + maxCostEval + minMaxBalanceTheBalanceEval) * eventCheck;
+
+            var result = new FitnessComposition();
+
+            result.Fitness = (nppyWeight * (result.NpProfitPerYear = NormalizedProfitPerYear(request, results))
+              + pppyWeight * (result.PnlProfitPerYear = PnlProfitPerYear(request, results))
+              + ipdrWeight * (result.IncomePerDayRatio = IncomePerDayRatio(results))
+              + rrrWeight * (result.RRR = Rrr(results))
+              + tradeCountWeight * (result.TradeCountFactor = TradeCountFactor(results))
+              + lpoWeight * (result.LowerPositionFactor = LowerPositionOverall(request, results, balanceThreshold))
+              + maxCostWeight * (result.MaxCostFactor = MaxCost(request, results, maxCostThreshold))
+              + minMaxBalanceTheBalanceWeight * (result.minMaxBalanceTheBalanceFactor = BalanceTheBalance(results, request, minBalance, maxBalance)))
+              * eventCheck;
+
+
+            //var fitness = (nppyEval + pppyEval + ipdrEval + rrrEval + tradeCountEval + lowerPosEval + maxCostEval + minMaxBalanceTheBalanceEval) * eventCheck;
 
             //Formát výpisu zachovat, čárka a mezera se používají v LogAnalyzer.ps1 dle které se splitují hodnoty !
             //Log.Info($"Fitness : {fitness}, nppyEval : {nppyEval}, pppyEval : {pppyEval}, ipdrEval : {ipdrEval}, rrrEval : {rrrEval}, tradeCountEval : {tradeCountEval}, lowerPosEval : {lowerPosEval}, MaxCostEval : {maxCostEval}, EventCheck : {eventCheck}");
 
-            return fitness;
+            return result;
         }
 
         public static double Normalize(double value, double target, double virtualMax, double? cap)

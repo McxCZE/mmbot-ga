@@ -1,153 +1,9 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using Downloader.Core.Core;
-//using MMBotGA.data.exchange;
-//using MMBotGA.downloader;
-//using MMBotGA.ga.abstraction;
-
-//namespace MMBotGA.data.provider
-//{
-
-//    internal class FixedDataProvider : IDataProvider
-//    {
-//        private const string DataFolder = "data";
-
-//        protected virtual DataProviderSettings Settings => new()
-//        {
-//            Allocations = AllocationDefinitions.Select(x => x.ToAllocation()).ToArray(),
-//            DateSettings = new DataProviderDateSettings
-//            {
-//                Automatic = true
-//            }
-//        };
-
-//        private static IEnumerable<AllocationDefinition> AllocationDefinitions => new AllocationDefinition[]
-//        {
-//            //TODO : Dynamické runy, allocationDefinition Ilist ? 
-//            //new()
-//            //{
-//            //    Exchange = Exchange.Binance,
-//            //    Pair = new Pair("ADAUP", "USDT"),
-//            //    Balance = 1000
-//            //},
-//            //new()
-//            //{
-//            //    Exchange = Exchange.Ftx,
-//            //    Pair = new Pair("ATOM", "PERP"),
-//            //    Balance = 1000
-//            //},
-//            //new()
-//            //{
-//            //    Exchange = Exchange.Ftx,
-//            //    Pair = new Pair("DOT", "PERP"),
-//            //    Balance = 1000
-//            //},
-//            //new()
-//            //{
-//            //    Exchange = Exchange.Ftx,
-//            //    Pair = new Pair("LUNA", "PERP"),
-//            //    Balance = 1000
-//            //},
-//            //new()
-//            //{
-//            //    Exchange = Exchange.Ftx,
-//            //    Pair = new Pair("SOL", "PERP"),
-//            //    Balance = 1000
-//            //},
-//            //new()
-//            //{
-//            //    Exchange = Exchange.Ftx,
-//            //    Pair = new Pair("CAKE", "PERP"),
-//            //    Balance = 1000
-//            //},
-//            //new()
-//            //{
-//            //    Exchange = Exchange.Ftx,
-//            //    Pair = new Pair("UNI", "PERP"),
-//            //    Balance = 1000
-//            //},
-//            //new()
-//            //{
-//            //    Exchange = Exchange.Ftx,
-//            //    Pair = new Pair("MATIC", "PERP"),
-//            //    Balance = 1000
-//            //},
-//            //new()
-//            //{
-//            //    Exchange = Exchange.Ftx,
-//            //    Pair = new Pair("AVAX", "PERP"),
-//            //    Balance = 1000
-//            //},
-//            new()
-//            {
-//                Exchange = Exchange.Ftx,
-//                Pair = new Pair("SOL", "PERP"),
-//                Balance = 1000
-//            }
-
-//        };
-
-
-//        public Batch[] GetBacktestData(IProgress progressCallback)
-//        {
-//            //File.WriteAllText("allocations.json", JsonConvert.SerializeObject(Settings, Formatting.Indented)); 
-
-//            var downloader = new DefaultDownloader(progressCallback);
-
-//            //divide to 3x graphs, more fluent, without spikes. 
-//            var backtestRange = Settings.DateSettings.Automatic
-//                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date, TimeSpan.FromDays(-120))
-//                : Settings.DateSettings.Backtest;
-//            var backtestRangeTwo = Settings.DateSettings.Automatic
-//                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-120), TimeSpan.FromDays(-120))
-//                : Settings.DateSettings.Backtest;
-//            var backtestRangeThree = Settings.DateSettings.Automatic
-//                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-240), TimeSpan.FromDays(-120))
-//                : Settings.DateSettings.Backtest;
-
-//            List<Batch> settingsAllocations = new List<Batch>();
-
-//            //Batch backtestRangeDyn = new Batch(settingsAllocations.Select(x => x)));
-//            //settingsAllocations.Add();
-
-//            return Settings.Allocations
-//                .Select(x => new Batch(x.ToBatchName(),
-//                    new[]
-//                    {
-//                        //downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), false, x.Balance),
-//                        //downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), true, x.Balance),
-//                        //downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeTwo), true, x.Balance),
-//                        //downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeThree), true, x.Balance),
-//                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), false, x.Balance),
-//                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeTwo), false, x.Balance),
-//                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRangeThree), false, x.Balance)
-//                    }))
-//                .ToArray();
-//        }
-
-//        public Batch[] GetControlData(IProgress progressCallback)
-//        {
-//            var downloader = new DefaultDownloader(progressCallback);
-//            var backtestRange = Settings.DateSettings.Automatic
-//                ? DateTimeRange.FromUtcToday(TimeSpan.FromDays(-60))
-//                : Settings.DateSettings.Control;
-
-//            return Settings.Allocations
-//                .Select(x => new Batch(x.ToBatchName(),
-//                    new[]
-//                    {
-//                        downloader.GetBacktestData(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange), false, x.Balance)
-//                    }))
-//                .ToArray();
-//        }
-//    }
-//}
-
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Downloader.Core.Core;
+using MMBotGA.backtest;
 using MMBotGA.data.exchange;
 using MMBotGA.downloader;
 using MMBotGA.ga.abstraction;
@@ -165,7 +21,7 @@ namespace MMBotGA.data.provider
             {
                 Automatic = true,
                 Backtest = DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-60), TimeSpan.FromDays(-365)),
-                Control = DateTimeRange.FromDiff(new DateTime(2022, 1, 4, 0, 0, 0, DateTimeKind.Utc), TimeSpan.FromDays(-60))
+                Control = DateTimeRange.FromDiff(new DateTime(2022, 1, 4, 0,0,0, DateTimeKind.Utc), TimeSpan.FromDays(-60))
             }
         };
 
@@ -173,65 +29,95 @@ namespace MMBotGA.data.provider
         {
             //new()
             //{
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("ZEC", "USDT"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("FLUX", "USDT"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("HTR", "USDT"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
             //    Exchange = Exchange.Binance,
-            //    Pair = new Pair("ADAUP", "USDT"),
+            //    Pair = new Pair("LSK", "USDT"),
             //    Balance = 1000
             //},
             //new()
             //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("ATOM", "PERP"),
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("BTC", "USDT"),
             //    Balance = 1000
             //},
             //new()
             //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("DOT", "PERP"),
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("ETH", "USDT"),
             //    Balance = 1000
             //},
             //new()
             //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("LUNA", "PERP"),
+            //    Exchange = Exchange.Bitfinex,
+            //    Pair = new Pair("ZEC", "USD"),
             //    Balance = 1000
             //},
             //new()
             //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("SOL", "PERP"),
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("XRP", "USDT"),
             //    Balance = 1000
             //},
             //new()
             //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("CAKE", "PERP"),
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("FTM", "USDT"),
             //    Balance = 1000
             //},
             //new()
             //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("UNI", "PERP"),
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("LTC", "USDT"),
             //    Balance = 1000
             //},
             //new()
             //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("MATIC", "PERP"),
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("FLUX", "USDT"),
             //    Balance = 1000
             //},
             //new()
             //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("AVAX", "PERP"),
+            //    Exchange = Exchange.Binance,
+            //    Pair = new Pair("AVAX", "USDT"),
             //    Balance = 1000
             //},
-            new()
+            //new()
+            //{
+            //    Exchange = Exchange.Binance,
+            //    Pair = new Pair("BNB", "USDT"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Binance,
+            //    Pair = new Pair("SOL", "USDT"),
+            //    Balance = 1000
+            //},
+            new ()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("ETH", "PERP"),
+                Pair = new Pair("ADA", "PERP"),
                 Balance = 1000
             }
-        };
+};
 
         public Batch[] GetBacktestData(IProgress progressCallback)
         {
@@ -243,24 +129,49 @@ namespace MMBotGA.data.provider
                 : Settings.DateSettings.Backtest;
 
             const int splits = 3;
-            var diff = backtestRange.End - backtestRange.Start;
-            var partMinutes = (int)diff.TotalMinutes / splits;
-            var halfPartMinutes = partMinutes / 2;
-
-            var offsets = Enumerable
-                .Repeat(partMinutes, splits)
-                .Select((p, i) => p * i)
-                .Concat(Enumerable
-                    .Repeat(partMinutes, splits - 1)
-                    .Select((p, i) => halfPartMinutes + p * i)
-                );
 
             return Settings.Allocations
-                .Select(x => new Batch(x.ToBatchName(),
-                    offsets
-                        .Select(o => downloader.GetBacktestData(x, DataFolder, backtestRange, false, limit: partMinutes, offset: o))
-                        .ToArray()
-                ))
+                .Select(x =>
+                {
+                    var file = downloader.Download(new DownloadTask(DataFolder, x.Exchange, x.Symbol, backtestRange));
+                    return new
+                    {
+                        Allocation = x,
+                        File = file,
+                        Size = File.ReadAllLines(file).Length
+                    };
+                })
+                .Where(x => x.Size > 100)
+                .Select(x =>
+                {
+                    var partMinutes = x.Size / splits;
+                    var halfPartMinutes = partMinutes / 2;
+
+                    var offsets = Enumerable
+                        .Repeat(partMinutes, splits)
+                        .Select((p, i) => p * i)
+                        .Concat(Enumerable
+                            .Repeat(partMinutes, splits - 1)
+                            .Select((p, i) => halfPartMinutes + p * i)
+                        );
+
+                    return new Batch(x.Allocation.ToBatchName(),
+                        offsets
+                            .Select(o => new BacktestData
+                            {
+                                Broker = x.Allocation.Exchange.ToLower(),
+                                Pair = x.Allocation.RobotSymbol ??
+                                       x.Allocation.Symbol, // Get broker pair info: /admin/api/brokers/kucoin/pairs
+                                SourceFile = x.File,
+                                Reverse = false,
+                                Balance = x.Allocation.Balance,
+                                Start = null,
+                                Limit = partMinutes,
+                                Offset = o
+                            })
+                            .ToArray()
+                    );
+                })
                 .ToArray();
 
             //var partDays = (int)diff.TotalDays / splits;
