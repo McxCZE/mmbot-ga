@@ -16,11 +16,11 @@ namespace MMBotGA.ga
 
             // max is exclusive
             Exponent = _factory.Create(() => RandomizationProvider.Current.GetDouble(1, 20));
-            Trend = _factory.Create(() => RandomizationProvider.Current.GetDouble(-100, 100));
+            Trend = _factory.Create(() => RandomizationProvider.Current.GetDouble(-100, 0));
             Rebalance = _factory.Create(() => RandomizationProvider.Current.GetInt(3, 5)); // 0-5
-            FunctionGene = _factory.Create(() => RandomizationProvider.Current.GetInt(0, 3));
-            Stdev = _factory.Create(() => RandomizationProvider.Current.GetDouble(1, 60));
-            Sma = _factory.Create(() => RandomizationProvider.Current.GetDouble(1, 60));
+            //FunctionGene = _factory.Create(() => RandomizationProvider.Current.GetInt(0, 3));
+            Stdev = _factory.Create(() => RandomizationProvider.Current.GetDouble(1, 30));
+            Sma = _factory.Create(() => RandomizationProvider.Current.GetDouble(1, 30));
             Mult = _factory.Create(() => RandomizationProvider.Current.GetDouble(0.95, 1.05)); // 0.95 - 1.05
             Raise = _factory.Create(() => RandomizationProvider.Current.GetDouble(1, 1000));
             Fall = _factory.Create(() => RandomizationProvider.Current.GetDouble(0.1, 10));
@@ -31,6 +31,7 @@ namespace MMBotGA.ga
 
             //Static gene example:
             ModeGene = _factory.Create(1); //Independent osvědčený (obvzvlášť když ulítnou API na Exchange)
+            FunctionGene = _factory.Create(0); //Half-Half only.
 
             Resize(_factory.Length);
             CreateGenes();

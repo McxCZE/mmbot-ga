@@ -11,6 +11,7 @@
                 return $"{pair.Asset}-{pair.Currency}".ToUpperInvariant();
             } else
             {
+                //nefunguje, proč ? 
                 return $"{pair.Asset}/{pair.Currency}".ToUpperInvariant();
             }
             

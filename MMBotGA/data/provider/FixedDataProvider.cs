@@ -27,94 +27,22 @@ namespace MMBotGA.data.provider
 
         private static IEnumerable<AllocationDefinition> AllocationDefinitions => new AllocationDefinition[]
         {
-            //new()
+            //new ()
             //{
-            //    Exchange = Exchange.Kucoin,
-            //    Pair = new Pair("ZEC", "USDT"),
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("NEAR", "PERP"),
             //    Balance = 1000
             //},
-            //new()
+            //new ()
             //{
-            //    Exchange = Exchange.Kucoin,
-            //    Pair = new Pair("FLUX", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Kucoin,
-            //    Pair = new Pair("HTR", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Binance,
-            //    Pair = new Pair("LSK", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Kucoin,
-            //    Pair = new Pair("BTC", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Kucoin,
-            //    Pair = new Pair("ETH", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Bitfinex,
-            //    Pair = new Pair("ZEC", "USD"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Kucoin,
-            //    Pair = new Pair("XRP", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Kucoin,
-            //    Pair = new Pair("FTM", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Kucoin,
-            //    Pair = new Pair("LTC", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Kucoin,
-            //    Pair = new Pair("FLUX", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Binance,
-            //    Pair = new Pair("AVAX", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Binance,
-            //    Pair = new Pair("BNB", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Binance,
-            //    Pair = new Pair("SOL", "USDT"),
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("LINK", "PERP"),
             //    Balance = 1000
             //},
             new ()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("ADA", "PERP"),
+                Pair = new Pair("FTM", "PERP"),
                 Balance = 1000
             }
 };
@@ -125,7 +53,7 @@ namespace MMBotGA.data.provider
 
             var downloader = new DefaultDownloader(progressCallback);
             var backtestRange = Settings.DateSettings.Automatic
-                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-60), TimeSpan.FromDays(-365))
+                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(0), TimeSpan.FromDays(-365)) //-365
                 : Settings.DateSettings.Backtest;
 
             const int splits = 3;
