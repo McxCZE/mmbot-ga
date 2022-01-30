@@ -6,15 +6,7 @@
 
         public string GetSymbol(Pair pair)
         {
-            if (pair.Currency.ToUpper() == "PERP")
-            {
-                return $"{pair.Asset}-{pair.Currency}".ToUpperInvariant();
-            } else
-            {
-                //nefunguje, proč ? 
-                return $"{pair.Asset}/{pair.Currency}".ToUpperInvariant();
-            }
-            
+            return $"{pair.Asset}-{pair.Currency}".ToUpperInvariant();
         }
 
         public string GetRobotSymbol(Pair pair)

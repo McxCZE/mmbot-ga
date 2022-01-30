@@ -11,7 +11,7 @@ namespace MMBotGA
 
         private static void Main()
         {
-            ServicePointManager.DefaultConnectionLimit = 15;
+            ServicePointManager.DefaultConnectionLimit = 10;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             Log.Info("Starting");

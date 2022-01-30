@@ -6,7 +6,9 @@ using Downloader.Core.Core;
 using MMBotGA.backtest;
 using MMBotGA.data.exchange;
 using MMBotGA.downloader;
+using MMBotGA.ga;
 using MMBotGA.ga.abstraction;
+using Newtonsoft.Json;
 
 namespace MMBotGA.data.provider
 {
@@ -27,33 +29,63 @@ namespace MMBotGA.data.provider
 
         private static IEnumerable<AllocationDefinition> AllocationDefinitions => new AllocationDefinition[]
         {
-            //new ()
+            //new()
             //{
             //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("NEAR", "PERP"),
-            //    Balance = 1000
+            //    Pair = new Pair("CAKE", "PERP"),
+            //    Balance = 1000,
+            //    // Set strategy manually and train just spread
+            //    AdamChromosome = new SpreadChromosome(new dto.Strategy
+            //    {
+            //        Type = "gamma",
+            //        Exponent = 16.7,
+            //        Trend = -59,
+            //        Function = "halfhalf",
+            //        Rebalance = "4", //0-4 
+            //        Reinvest = false                    
+            //    })
             //},
-            //new ()
+            //new()
             //{
             //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("LINK", "PERP"),
-            //    Balance = 1000
+            //    Pair = new Pair("UNI", "PERP"),
+            //    Balance = 1000,
+            //    // Set strategy manually and train just spread
+            //    AdamChromosome = new SpreadChromosome(new dto.Strategy
+            //    {
+            //        Type = "gamma",
+            //        Exponent = 7.7,
+            //        Trend = -46,
+            //        Function = "halfhalf",
+            //        Rebalance = "4", //0-4 
+            //        Reinvest = false
+            //    })
             //},
-            new ()
+            new()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("FTM", "PERP"),
-                Balance = 1000
+                Pair = new Pair("DOT", "PERP"),
+                Balance = 1000,
+                // Set strategy manually and train just spread
+                AdamChromosome = new SpreadChromosome(new dto.Strategy
+                {
+                    Type = "gamma",
+                    Exponent = 9.6,
+                    Trend = -44,
+                    Function = "gauss",
+                    Rebalance = "4", //0-4 
+                    Reinvest = false
+                })
             }
-};
+        };
 
         public Batch[] GetBacktestData(IProgress progressCallback)
         {
-            //File.WriteAllText("allocations.json", JsonConvert.SerializeObject(Settings, Formatting.Indented)); 
+            File.WriteAllText("allocations.json.sample", JsonConvert.SerializeObject(Settings, Formatting.Indented)); 
 
             var downloader = new DefaultDownloader(progressCallback);
             var backtestRange = Settings.DateSettings.Automatic
-                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(0), TimeSpan.FromDays(-365)) //-365
+                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-60), TimeSpan.FromDays(-365))
                 : Settings.DateSettings.Backtest;
 
             const int splits = 3;
@@ -83,7 +115,7 @@ namespace MMBotGA.data.provider
                             .Select((p, i) => halfPartMinutes + p * i)
                         );
 
-                    return new Batch(x.Allocation.ToBatchName(),
+                    return new Batch(x.Allocation.ToBatchName(), x.Allocation.AdamChromosome,
                         offsets
                             .Select(o => new BacktestData
                             {
@@ -130,7 +162,7 @@ namespace MMBotGA.data.provider
                 : Settings.DateSettings.Control;
 
             return Settings.Allocations
-                .Select(x => new Batch(x.ToBatchName(),
+                .Select(x => new Batch(x.ToBatchName(), x.AdamChromosome,
                     new[]
                     {
                         downloader.GetBacktestData(x, DataFolder, controlRange, false)

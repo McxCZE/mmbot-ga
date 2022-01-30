@@ -13,7 +13,7 @@ namespace MMBotGA.api
         private readonly string _baseUrl;
         private readonly HttpClient _client;
 
-        private readonly JsonSerializerOptions _serializerOptions = new()
+        private readonly JsonSerializerOptions _serializerOptions = new ()
         {
             Converters = { new DoubleConverter() },
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
@@ -31,7 +31,7 @@ namespace MMBotGA.api
         public async Task<Minfo> GetInfoAsync(string broker, string pair)
         {
             using var response = await _client.GetAsync($"{BrokersUrl}{broker}/pairs/{pair}/info");
-
+            
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadAsStringAsync();

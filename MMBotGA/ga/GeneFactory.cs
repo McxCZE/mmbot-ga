@@ -8,7 +8,7 @@ namespace MMBotGA.ga
     {
         private readonly ChromosomeBase _parent;
         private int _current;
-        private readonly IList<IGeneWrapper> _genes;
+        private readonly IList<IGeneWrapper>_genes;
 
         public int Length => _genes.Count;
 
