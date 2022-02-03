@@ -29,54 +29,46 @@ namespace MMBotGA.data.provider
 
         private static IEnumerable<AllocationDefinition> AllocationDefinitions => new AllocationDefinition[]
         {
+            new()
+            {
+                Exchange = Exchange.Ftx,
+                Pair = new Pair("FTM", "PERP"),
+                Balance = 1000
+            }
             //new()
             //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("CAKE", "PERP"),
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("FLUX", "USDT"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("HTR", "USDT"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Bitfinex,
+            //    Pair = new Pair("ZEC", "USD"),
             //    Balance = 1000,
             //    // Set strategy manually and train just spread
             //    AdamChromosome = new SpreadChromosome(new dto.Strategy
             //    {
             //        Type = "gamma",
-            //        Exponent = 16.7,
-            //        Trend = -59,
-            //        Function = "halfhalf",
-            //        Rebalance = "4", //0-4 
+            //        Exponent = 7,
+            //        Trend = -70,
+            //        Function = "gauss",
+            //        Rebalance = "3",
             //        Reinvest = false                    
             //    })
             //},
             //new()
             //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("UNI", "PERP"),
-            //    Balance = 1000,
-            //    // Set strategy manually and train just spread
-            //    AdamChromosome = new SpreadChromosome(new dto.Strategy
-            //    {
-            //        Type = "gamma",
-            //        Exponent = 7.7,
-            //        Trend = -46,
-            //        Function = "halfhalf",
-            //        Rebalance = "4", //0-4 
-            //        Reinvest = false
-            //    })
-            //},
-            new()
-            {
-                Exchange = Exchange.Ftx,
-                Pair = new Pair("DOT", "PERP"),
-                Balance = 1000,
-                // Set strategy manually and train just spread
-                AdamChromosome = new SpreadChromosome(new dto.Strategy
-                {
-                    Type = "gamma",
-                    Exponent = 9.6,
-                    Trend = -44,
-                    Function = "gauss",
-                    Rebalance = "4", //0-4 
-                    Reinvest = false
-                })
-            }
+            //    Exchange = Exchange.Binance,
+            //    Pair = new Pair("AVAX", "USDT"),
+            //    Balance = 1000
+            //}
         };
 
         public Batch[] GetBacktestData(IProgress progressCallback)

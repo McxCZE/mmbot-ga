@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using GeneticSharp.Domain;
@@ -8,7 +9,9 @@ using GeneticSharp.Domain.Mutations;
 using GeneticSharp.Domain.Populations;
 using GeneticSharp.Domain.Selections;
 using GeneticSharp.Domain.Terminations;
+using log4net;
 using MMBotGA.api;
+using MMBotGA.backtest;
 using MMBotGA.data.provider;
 using MMBotGA.ga;
 using MMBotGA.ga.abstraction;
@@ -21,9 +24,12 @@ namespace MMBotGA
 {
     internal class MainWindow
     {
+        private static readonly ILog Log = LogManager.GetLogger(typeof(MainWindow));
+
         private readonly TextField _txtBatch;
         private readonly TextField _txtGeneration;
         private readonly TextField _txtFitness;
+        private readonly TextField _txtBacktestRate;        
         private readonly ProgressDialog _progressDialog;
         private readonly ProgressBar _totalProgressBar;
         private readonly ProgressBar _currentProgressBar;
@@ -87,9 +93,21 @@ namespace MMBotGA
                 Width = _txtBatch.Width
             };
 
+            var lblBacktestRate = new Label("Tests /sec: ")
+            {
+                Y = Pos.Bottom(lblFitness)
+            };
+            _txtBacktestRate = new TextField
+            {
+                ReadOnly = true,
+                X = _txtBatch.X,
+                Y = Pos.Top(lblBacktestRate),
+                Width = _txtBatch.Width
+            };
+
             _totalProgressBar = new ProgressBar
             {
-                Y = Pos.Bottom(lblFitness) + 1,
+                Y = Pos.Bottom(lblBacktestRate) + 1,
                 Width = Dim.Fill()
             };
             _currentProgressBar = new ProgressBar
@@ -98,7 +116,7 @@ namespace MMBotGA
                 Width = Dim.Fill()
             };
 
-            window.Add(lblGeneration, _txtGeneration, lblFitness, _txtFitness, lblBatch, _txtBatch, _totalProgressBar,
+            window.Add(lblGeneration, _txtGeneration, lblFitness, _txtFitness, lblBatch, _txtBatch, lblBacktestRate, _txtBacktestRate, _totalProgressBar,
                 _currentProgressBar);
 
             _progressDialog = new ProgressDialog(window);
@@ -115,9 +133,8 @@ namespace MMBotGA
             var apiPool = ApiDefinitions.GetLease();
             ThreadPool.SetMinThreads(apiPool.Available, apiPool.Available);
 
-            //TODO: pick your data provider
-            var dataProvider = new FixedDataProvider();
-            //var dataProvider = new JsonConfiguredDataProvider();
+            var dataProvider = File.Exists("allocations.json") ? new JsonConfiguredDataProvider() : new FixedDataProvider();
+            Log.Info($"Data provider: {dataProvider}");
 
             var backtestBatches = dataProvider.GetBacktestData(_progressDialog);
             var controlBatches = dataProvider.GetControlData(_progressDialog); 
@@ -128,7 +145,7 @@ namespace MMBotGA
             var selection = new EliteSelection();
             var crossover = new UniformCrossover();
             var mutation = new UniformMutation(true);
-            var termination = new FitnessStagnationTermination(40);
+            var termination = new FitnessStagnationTermination(80);
             var executor = new ExactParallelTaskExecutor(apiPool.Available);
 
             var csvHandlers = new Dictionary<Tuple<Type, Type>, CsvWrapper>();
@@ -188,6 +205,7 @@ namespace MMBotGA
                 _txtBatch.Text = "FINISHED";
                 _txtGeneration.Text = string.Empty;
                 _txtFitness.Text = string.Empty;
+                _txtBacktestRate.Text = string.Empty;
             });
 
             //Application.MainLoop.Invoke(() => MessageBox.Query("Information", "GA is finished.", "OK"));
@@ -213,7 +231,8 @@ namespace MMBotGA
                 Application.MainLoop.Invoke(() =>
                 {
                     _txtGeneration.Text = ga.GenerationsNumber.ToString();
-                    _txtFitness.Text = ga.BestChromosome.Fitness.Value.ToString();
+                    _txtFitness.Text = ga.BestChromosome.Fitness.Value.ToString("0.000");
+                    _txtBacktestRate.Text = BacktestStats.Rate.ToString("0.00");
                 });
             }
 

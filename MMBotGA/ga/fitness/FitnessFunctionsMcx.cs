@@ -58,7 +58,7 @@ namespace MMBotGA.ga.fitness
             var first = results.First();
 
             var trades = results.Count(x => x.Sz != 0);
-            var alerts = 1 - (results.Count - trades) / (double) results.Count;
+            var alerts = 1 - (results.Count - trades) / (double)results.Count;
 
             var days = (last.Tm - first.Tm) / 86400000d;
             var tradesPerDay = trades / days;
@@ -75,7 +75,7 @@ namespace MMBotGA.ga.fitness
             //Pokud mám více jak 3% alertů v celém spektru, špatný backtest.
             if (alertsRatio > 0.03) { return 0; } else { return r * alerts; }
 
-            
+
 
             //return Normalize(trades, 1000, 3000, null) * alerts;
         }
@@ -158,7 +158,7 @@ namespace MMBotGA.ga.fitness
         {
             double cost = 0;
             double maxCost = 0;
-            
+
             foreach (var trade in results)
             {
                 cost = cost + (trade.Sz * trade.Pr);
@@ -190,7 +190,8 @@ namespace MMBotGA.ga.fitness
             if (results.Where(x => x.Event != null).Where(x => x.Event == "margin_call").Count() > 0)
             {
                 return 0;
-            } else
+            }
+            else
             {
                 return 1;
             };
@@ -214,7 +215,39 @@ namespace MMBotGA.ga.fitness
                 if (numerator != 0)
                 {
                     double percentageDiffCalculation = (numerator / denominator) * 100;
-                    if (percentageDiffCalculation > tightenNplRpnlThreshold) { deviatedTrades += 1; }
+                    if (percentageDiffCalculation > tightenNplRpnlThreshold) {
+
+                        //Co kdyby to zavolalo funkci EquityToFollow a zkontrolovalo by to Equity, a na základě toho se rozhodlo jestli je to DeviatedTrade nebo nikoliv.
+
+                        deviatedTrades += 1;
+                    }
+                }
+            }
+
+            double deviatedTradesRatio = deviatedTrades / resultsCounted;
+            double deviationThresholdActual = 1 - deviatedTradesRatio;
+            return deviationThresholdActual;
+        }
+
+        public static double GetEquityToFollow(ICollection<RunResponse> results, double tightenEquityFollow)
+        {
+            if (results.Count == 0) { return 0; }
+
+            double deviatedTrades = 0;
+            double resultsCounted = results.Count();
+
+            foreach (var result in results)
+            {
+                double pl = result.Pl;
+                double rpnl = result.Rpnl;
+
+                double numerator = Math.Abs(pl - rpnl);
+                double denominator = pl + rpnl / 2;
+
+                if (numerator != 0)
+                {
+                    double percentageDiffCalculation = (numerator / denominator) * 100;
+                    if (percentageDiffCalculation > tightenEquityFollow) { deviatedTrades += 1; }
                 }
             }
 
@@ -245,7 +278,7 @@ namespace MMBotGA.ga.fitness
                     }
                 }
             }
-            
+
             var result = Math.Max(maxPl / maxDowndraw, 0);
             return Normalize(result, 5, 30, null);
         }
@@ -273,15 +306,17 @@ namespace MMBotGA.ga.fitness
             const double tightenNeutralPriceThreshold = 2; //Nefunguje při splitnutém grafu ! (Malém jsem se tady při ladění posral...)
             const double tradeCountWeight = 0.00;
             #endregion
-           
+
             const double rrrWeight = 0.20;
-            const double tightenNplRpnlWeight = 0.80;
+            const double tightenNplRpnlWeight = 0.00;
+            const double getEquityToFollowWeight = 0.80; //Neobchoduje :)
 
             //tightenNplRpnl je proměnlivý údaj a velmi záleží na páru
             //chtělo by to matematickou rovnici která by určila optimální NplRpnl bez toho, aniž by overfitnul.
             //Napadla mne matice která by dle oscilace páru určila tento parametr. 
             //Je navázáno na Exponent u Gamma funkcí.
             const double tightenNplRpnlThreshold = 1.5; // % oscilace profit&loss kolem normalized profit.
+            const double tightenEquityFollow = 1.5;
 
             //Debug
             //Debug.Assert(Math.Abs(nppyWeight + pppyWeight + ipdrWeight + lpoWeight + rrrWeight + tradeCountWeight + maxCostWeight + tightenNeutralPriceWeight + tightenNplRpnlWeight - 1) < 0.01);
@@ -291,7 +326,8 @@ namespace MMBotGA.ga.fitness
 
             result.Fitness = (rrrWeight * (result.RRR = Rrr(results))
               //+ tradeCountWeight * (result.TradeCountFactor = TradeCountFactor(results))
-              + tightenNplRpnlWeight * (result.TightenNplRpnl = TightenNplRpnl(results, tightenNplRpnlThreshold)))
+              + tightenNplRpnlWeight * (result.TightenNplRpnl = TightenNplRpnl(results, tightenNplRpnlThreshold))
+              + getEquityToFollowWeight * (result.GetEquityToFollow = GetEquityToFollow(results, tightenEquityFollow)))
               * eventCheck;
 
             #region Outdated
