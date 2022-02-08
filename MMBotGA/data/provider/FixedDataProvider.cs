@@ -32,41 +32,29 @@ namespace MMBotGA.data.provider
             new()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("FTM", "PERP"),
-                Balance = 1000
-            }
+                Pair = new Pair("AVAX", "PERP"),
+                Balance = 1100
+            },
             //new()
             //{
-            //    Exchange = Exchange.Kucoin,
-            //    Pair = new Pair("FLUX", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Kucoin,
-            //    Pair = new Pair("HTR", "USDT"),
-            //    Balance = 1000
-            //},
-            //new()
-            //{
-            //    Exchange = Exchange.Bitfinex,
-            //    Pair = new Pair("ZEC", "USD"),
+            //    Exchange = Exchange.Binance,
+            //    Pair = new Pair("ADAUP", "USDT"),
             //    Balance = 1000,
             //    // Set strategy manually and train just spread
             //    AdamChromosome = new SpreadChromosome(new dto.Strategy
             //    {
             //        Type = "gamma",
-            //        Exponent = 7,
-            //        Trend = -70,
-            //        Function = "gauss",
+            //        Exponent = 17.6,
+            //        Trend = -67,
+            //        Function = "halfhalf",
             //        Rebalance = "3",
-            //        Reinvest = false                    
+            //        Reinvest = false
             //    })
             //},
             //new()
             //{
-            //    Exchange = Exchange.Binance,
-            //    Pair = new Pair("AVAX", "USDT"),
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("FLUX", "USDT"),
             //    Balance = 1000
             //}
         };

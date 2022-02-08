@@ -12,44 +12,6 @@ namespace MMBotGA.ga.fitness
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(FitnessFunctionsMcx));
 
-
-        #region Nefunguje - Třebas opraviti
-        public static double TightenNeutralPriceToLast(ICollection<RunResponse> results, double tightenNeutralPriceThreshold)
-        {
-            if (results.Count == 0) { return 0; }
-
-            double deviation = 0;
-            double deviatedTrades = 0;
-            IEnumerable<RunResponse> resultsWithInfo = results.Where(x => x.Info != null).Where(x => x.Upnl < 0);
-            double resultsWithInfoCounted = resultsWithInfo.Count();
-
-            foreach (var resultWithInfo in resultsWithInfo)
-            {
-                double priceLast = resultWithInfo.Info.PriceLast;
-                double priceNeutral = resultWithInfo.Info.PriceNeutral;
-                if (priceLast != 0 && priceNeutral != 0)
-                {
-                    double numerator = Math.Abs(priceLast - priceNeutral);
-                    double denominator = priceLast + priceNeutral / 2;
-
-                    if (numerator != 0)
-                    {
-                        double percentageDiffCalculation = (numerator / denominator) * 100;
-                        deviation = percentageDiffCalculation;
-
-                        if (deviation > tightenNeutralPriceThreshold) { deviatedTrades += 1; }
-                    }
-                }
-            }
-
-            double deviatedTradesRatio = deviatedTrades / (double)results.Count();
-            double deviationThresholdActual = 1 - deviatedTradesRatio;
-
-            return deviationThresholdActual;
-        }
-
-        #endregion
-
         #region Outdated
         public static double TradeCountFactor(ICollection<RunResponse> results)
         {
@@ -197,7 +159,12 @@ namespace MMBotGA.ga.fitness
             };
         }
 
-        public static double TightenNplRpnl(ICollection<RunResponse> results, double tightenNplRpnlThreshold)
+        public static double TightenNplRpnlSubmergedFunction(
+            ICollection<RunResponse> results,
+            double tightenNplRpnlThreshold,
+            double tightenEquityThreshold,
+            double tightenNeutralPriceToLastThreshold
+        )
         {
             if (results.Count == 0) { return 0; }
 
@@ -208,20 +175,31 @@ namespace MMBotGA.ga.fitness
             {
                 double npl = result.Npl;
                 double rpnl = result.Rpnl;
+                double tradeSize = result.Sz;
 
                 double numerator = Math.Abs(npl - rpnl);
                 double denominator = npl + rpnl / 2;
 
-                if (numerator != 0)
+                if ((numerator != 0) && (tradeSize != 0))
                 {
                     double percentageDiffCalculation = (numerator / denominator) * 100;
                     if (percentageDiffCalculation > tightenNplRpnlThreshold) {
 
-                        //Co kdyby to zavolalo funkci EquityToFollow a zkontrolovalo by to Equity, a na základě toho se rozhodlo jestli je to DeviatedTrade nebo nikoliv.
-
                         deviatedTrades += 1;
+
+                        if (GetEquityToFollow(result, tightenEquityThreshold))
+                        {
+                            deviatedTrades += 1;
+
+                            if (TightenNeutralPriceToLast(result, tightenNeutralPriceToLastThreshold))
+                            {
+                                deviatedTrades += 1;
+                            }
+                        }
                     }
                 }
+
+                if (tradeSize == 0) { deviatedTrades += 1; }
             }
 
             double deviatedTradesRatio = deviatedTrades / resultsCounted;
@@ -229,32 +207,59 @@ namespace MMBotGA.ga.fitness
             return deviationThresholdActual;
         }
 
-        public static double GetEquityToFollow(ICollection<RunResponse> results, double tightenEquityFollow)
+        public static bool GetEquityToFollow(
+            RunResponse result,
+            double tightenEquityFollow
+        )
         {
-            if (results.Count == 0) { return 0; }
+            bool deviated = false;
 
-            double deviatedTrades = 0;
-            double resultsCounted = results.Count();
+            double pl = result.Pl;
+            double rpnl = result.Rpnl;
 
-            foreach (var result in results)
+            double numerator = Math.Abs(pl - rpnl);
+            double denominator = pl + rpnl / 2;
+
+            if (numerator != 0)
             {
-                double pl = result.Pl;
-                double rpnl = result.Rpnl;
+                double percentageDiffCalculation = (numerator / denominator) * 100;
+                if (percentageDiffCalculation > tightenEquityFollow) { deviated = true; }
+            }
 
-                double numerator = Math.Abs(pl - rpnl);
-                double denominator = pl + rpnl / 2;
+            return deviated;
+
+            //double deviatedTradesRatio = deviatedTrades / resultsCounted;
+            //double deviationThresholdActual = 1 - deviatedTradesRatio;
+            //return deviationThresholdActual;
+        }
+
+        public static bool TightenNeutralPriceToLast(
+            RunResponse result,
+            double tightenNeutralPriceToLast
+        )
+        {
+            bool deviated = false;
+            double priceLast = result.Info.PriceLast;
+            double priceNeutral = result.Info.PriceNeutral;
+
+            if((priceLast != 0) && (priceNeutral != 0))
+            {
+                double numerator = Math.Abs(priceLast - priceNeutral);
+                double denominator = (priceLast + priceNeutral) / 2;
 
                 if (numerator != 0)
                 {
                     double percentageDiffCalculation = (numerator / denominator) * 100;
-                    if (percentageDiffCalculation > tightenEquityFollow) { deviatedTrades += 1; }
+                    if(percentageDiffCalculation > tightenNeutralPriceToLast)
+                    {
+                        deviated = true;
+                    }
                 }
             }
 
-            double deviatedTradesRatio = deviatedTrades / resultsCounted;
-            double deviationThresholdActual = 1 - deviatedTradesRatio;
-            return deviationThresholdActual;
+            return deviated;
         }
+
 
         public static double Rrr(ICollection<RunResponse> results)
         {
@@ -287,36 +292,34 @@ namespace MMBotGA.ga.fitness
         {
             if (results == null || results.Count == 0) return new FitnessComposition();
 
-            //Jsem mnich a zisk mne nezajímá.
-            //Některé páry oscilují tak debilně, že snažit se je donutit k zisku, je kontraproduktivní
-            //MartinGale nedokáže efektivně mitigovat pump&dump coiny, proto GA vyrábí kompromis
-            //aby se dostala na požadovaný zisk. 
-            //Ziskovost vychází z cenové oscilace daného páru. 
+
 
             #region Outdated
-            const double nppyWeight = 0.00;
-            const double pppyWeight = 0.00;
-            const double ipdrWeight = 0.00;
-            const double lpoWeight = 0.00;
-            const double maxCostWeight = 0.00;
-            const double tightenNeutralPriceWeight = 0.00; //Nefunguje moc dobře, nahrazeno NplRpnl. (bylo by zajímavé toto přezkoumat).
+            //Jsem mnich a zisk mne nezajímá.
+            //Ziskovost vychází z cenové oscilace daného páru. 
+            //const double nppyWeight = 0.00;
+            //const double pppyWeight = 0.00;
+            //const double ipdrWeight = 0.00;
+            //const double lpoWeight = 0.00;
+            //const double maxCostWeight = 0.00;
+            //const double tightenNeutralPriceWeight = 0.00; //Nefunguje moc dobře, nahrazeno NplRpnl. (bylo by zajímavé toto přezkoumat).
             //Balance nad 10% reportuj jako vysokou pozici.
-            const double balanceThreshold = 0.1;
+            //const double balanceThreshold = 0.1;
             //Nad 2% deviace od neutrální ceny snižuj Fitness.
-            const double tightenNeutralPriceThreshold = 2; //Nefunguje při splitnutém grafu ! (Malém jsem se tady při ladění posral...)
-            const double tradeCountWeight = 0.00;
+            //const double tightenNeutralPriceThreshold = 2; //Nefunguje při splitnutém grafu ! (Malém jsem se tady při ladění posral...)
+            //const double tradeCountWeight = 0.00;
             #endregion
 
-            const double rrrWeight = 0.20;
-            const double tightenNplRpnlWeight = 0.00;
-            const double getEquityToFollowWeight = 0.80; //Neobchoduje :)
+            const double rrrWeight = 0.10;
+            const double tightenNplRpnlSubmergedWeight = 0.90;
 
             //tightenNplRpnl je proměnlivý údaj a velmi záleží na páru
             //chtělo by to matematickou rovnici která by určila optimální NplRpnl bez toho, aniž by overfitnul.
             //Napadla mne matice která by dle oscilace páru určila tento parametr. 
             //Je navázáno na Exponent u Gamma funkcí.
             const double tightenNplRpnlThreshold = 1.5; // % oscilace profit&loss kolem normalized profit.
-            const double tightenEquityFollow = 1.5;
+            const double tightenEquityThreshold = 1;
+            const double tightenNeutralPriceToLastThreshold = 0.5;
 
             //Debug
             //Debug.Assert(Math.Abs(nppyWeight + pppyWeight + ipdrWeight + lpoWeight + rrrWeight + tradeCountWeight + maxCostWeight + tightenNeutralPriceWeight + tightenNplRpnlWeight - 1) < 0.01);
@@ -326,8 +329,11 @@ namespace MMBotGA.ga.fitness
 
             result.Fitness = (rrrWeight * (result.RRR = Rrr(results))
               //+ tradeCountWeight * (result.TradeCountFactor = TradeCountFactor(results))
-              + tightenNplRpnlWeight * (result.TightenNplRpnl = TightenNplRpnl(results, tightenNplRpnlThreshold))
-              + getEquityToFollowWeight * (result.GetEquityToFollow = GetEquityToFollow(results, tightenEquityFollow)))
+              + tightenNplRpnlSubmergedWeight * (result.TightenNplRpnlSubmergedFunction = TightenNplRpnlSubmergedFunction(
+                  results,
+                  tightenNplRpnlThreshold,
+                  tightenEquityThreshold,
+                  tightenNeutralPriceToLastThreshold)))
               * eventCheck;
 
             #region Outdated
