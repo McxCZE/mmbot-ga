@@ -202,6 +202,8 @@ namespace MMBotGA.ga.fitness
                 if (tradeSize == 0) { deviatedTrades += 1; }
             }
 
+            //slouží jako ratio. deviatedTrades může mít za jeden trade skóre až 3, přičemž se mu snižuje celková fitness na základě odpočtu
+            //od celkového počtu obchodů.
             double deviatedTradesRatio = deviatedTrades / resultsCounted;
             double deviationThresholdActual = 1 - deviatedTradesRatio;
             return deviationThresholdActual;
