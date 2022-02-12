@@ -147,7 +147,9 @@ namespace MMBotGA.ga.fitness
         }
         #endregion
 
-        public static double CheckForEvents(ICollection<RunResponse> results)
+        public static double CheckForEvents(
+            ICollection<RunResponse> results
+        )
         {
             if (results.Where(x => x.Event != null).Where(x => x.Event == "margin_call").Count() > 0)
             {
@@ -163,7 +165,8 @@ namespace MMBotGA.ga.fitness
             ICollection<RunResponse> results,
             double tightenNplRpnlThreshold,
             double tightenEquityThreshold,
-            double tightenNeutralPriceToLastThreshold
+            double tightenNeutralPriceToLastThreshold,
+            double howDeepToDive
         )
         {
             if (results.Count == 0) { return 0; }
@@ -171,35 +174,55 @@ namespace MMBotGA.ga.fitness
             double deviatedTrades = 0;
             double resultsCounted = results.Count();
 
+            int index = 0;
+
             foreach (var result in results)
             {
                 double npl = result.Npl;
                 double rpnl = result.Rpnl;
                 double tradeSize = result.Sz;
-
-                double numerator = Math.Abs(npl - rpnl);
-                double denominator = npl + rpnl / 2;
-
-                if ((numerator != 0) && (tradeSize != 0))
+                double percentageDiffCalculation = PercentageDifference(npl, rpnl);
+                if (tradeSize != 0)
                 {
-                    double percentageDiffCalculation = (numerator / denominator) * 100;
                     if (percentageDiffCalculation > tightenNplRpnlThreshold) {
 
-                        deviatedTrades += 1;
+                        if ((index) > 0) { 
+                            RunResponse whatHappenedBefore = results.ElementAt(index - 1);
+                            if (whatHappenedBefore.Pr != 0)
+                            {
+                                double prBefore = whatHappenedBefore.Pr;
+                                double prActual = result.Pr;
+                                double percentageDiffPriceCalculation = PercentageDifference(prBefore, prActual);
+                                if (percentageDiffPriceCalculation > 3.5) //Cenový rozdíl 3,5 procenta (dump/pump).
+                                {
+                                    //Nefunguje z nějakého důvodu, přestane obchodovat.
+                                    //deviatedTrades += -1;
+                                }
+                            }
+                        }
 
+                        deviatedTrades += 1;
                         if (GetEquityToFollow(result, tightenEquityThreshold))
                         {
                             deviatedTrades += 1;
-
-                            if (TightenNeutralPriceToLast(result, tightenNeutralPriceToLastThreshold))
-                            {
-                                deviatedTrades += 1;
-                            }
+                            //if (TightenNeutralPriceToLast(result, tightenNeutralPriceToLastThreshold))
+                            //{
+                            //    deviatedTrades += 1;
+                            //}
                         }
                     }
-                }
 
-                if (tradeSize == 0) { deviatedTrades += 1; }
+                    if (null != result.Info)
+                    {
+                        double budgetCurrent = result.Info.BudgetCurrent;
+                        double budgetMax = result.Info.BudgetMax;
+                        double percentageDiffBudgetCalc = PercentageDifference(budgetCurrent, budgetMax);
+
+                        if (percentageDiffBudgetCalc > howDeepToDive) { deviatedTrades += 1; }
+                    }
+                }
+                if (tradeSize == 0) { deviatedTrades += 1.5; }
+                index++;
             }
 
             //slouží jako ratio. deviatedTrades může mít za jeden trade skóre až 3, přičemž se mu snižuje celková fitness na základě odpočtu
@@ -215,18 +238,12 @@ namespace MMBotGA.ga.fitness
         )
         {
             bool deviated = false;
-
             double pl = result.Pl;
             double rpnl = result.Rpnl;
 
-            double numerator = Math.Abs(pl - rpnl);
-            double denominator = pl + rpnl / 2;
-
-            if (numerator != 0)
-            {
-                double percentageDiffCalculation = (numerator / denominator) * 100;
-                if (percentageDiffCalculation > tightenEquityFollow) { deviated = true; }
-            }
+            double percentageDiffCalculation = PercentageDifference(pl, rpnl);
+            if (percentageDiffCalculation > tightenEquityFollow) { deviated = true; }
+            
 
             return deviated;
 
@@ -246,24 +263,20 @@ namespace MMBotGA.ga.fitness
 
             if((priceLast != 0) && (priceNeutral != 0))
             {
-                double numerator = Math.Abs(priceLast - priceNeutral);
-                double denominator = (priceLast + priceNeutral) / 2;
-
-                if (numerator != 0)
+                double percentageDiffCalculation = PercentageDifference(priceLast, priceNeutral);
+                if(percentageDiffCalculation > tightenNeutralPriceToLast)
                 {
-                    double percentageDiffCalculation = (numerator / denominator) * 100;
-                    if(percentageDiffCalculation > tightenNeutralPriceToLast)
-                    {
-                        deviated = true;
-                    }
+                deviated = true;
                 }
+                
             }
-
             return deviated;
         }
 
 
-        public static double Rrr(ICollection<RunResponse> results)
+        public static double Rrr(
+            ICollection<RunResponse> results
+        )
         {
             if (results.Count < 1) return 0;
 
@@ -290,11 +303,12 @@ namespace MMBotGA.ga.fitness
             return Normalize(result, 5, 30, null);
         }
 
-        public static FitnessComposition NpaRRR(BacktestRequest request, ICollection<RunResponse> results)
+        public static FitnessComposition NpaRRR(
+            BacktestRequest request,
+            ICollection<RunResponse> results
+        )
         {
             if (results == null || results.Count == 0) return new FitnessComposition();
-
-
 
             #region Outdated
             //Jsem mnich a zisk mne nezajímá.
@@ -312,30 +326,32 @@ namespace MMBotGA.ga.fitness
             //const double tradeCountWeight = 0.00;
             #endregion
 
-            const double rrrWeight = 0.10;
-            const double tightenNplRpnlSubmergedWeight = 0.90;
+            const double rrrWeight = 0.00;
+            const double tightenNplRpnlSubmergedWeight = 1.00;
 
             //tightenNplRpnl je proměnlivý údaj a velmi záleží na páru
             //chtělo by to matematickou rovnici která by určila optimální NplRpnl bez toho, aniž by overfitnul.
             //Napadla mne matice která by dle oscilace páru určila tento parametr. 
             //Je navázáno na Exponent u Gamma funkcí.
-            const double tightenNplRpnlThreshold = 1.5; // % oscilace profit&loss kolem normalized profit.
-            const double tightenEquityThreshold = 1;
-            const double tightenNeutralPriceToLastThreshold = 0.5;
+            const double tightenNplRpnlThreshold = 4; // 1.5% oscilace profit&loss kolem normalized profit.
+            const double tightenEquityThreshold = 1; // 1% deviace od Equity.
+            const double tightenNeutralPriceToLastThreshold = 0.5; // 0.5% deviace od neutrální ceny.
+            const double howDeepToDive = 10; //DCAčkuj max. 10-ti % budgetu.
 
             //Debug
             //Debug.Assert(Math.Abs(nppyWeight + pppyWeight + ipdrWeight + lpoWeight + rrrWeight + tradeCountWeight + maxCostWeight + tightenNeutralPriceWeight + tightenNplRpnlWeight - 1) < 0.01);
 
             var eventCheck = CheckForEvents(results); //0-1, nic jiného nevrací.
             var result = new FitnessComposition();
-
+            
             result.Fitness = (rrrWeight * (result.RRR = Rrr(results))
               //+ tradeCountWeight * (result.TradeCountFactor = TradeCountFactor(results))
               + tightenNplRpnlSubmergedWeight * (result.TightenNplRpnlSubmergedFunction = TightenNplRpnlSubmergedFunction(
                   results,
                   tightenNplRpnlThreshold,
                   tightenEquityThreshold,
-                  tightenNeutralPriceToLastThreshold)))
+                  tightenNeutralPriceToLastThreshold,
+                  howDeepToDive)))
               * eventCheck;
 
             #region Outdated
@@ -357,7 +373,9 @@ namespace MMBotGA.ga.fitness
             return result;
         }
 
-        public static double Normalize(double value, double target, double virtualMax, double? cap)
+        public static double Normalize(
+            double value, double target, double virtualMax, double? cap
+        )
         {
             if (value <= 0) return 0;
             var capped = Math.Min(value, cap ?? value);
@@ -367,6 +385,23 @@ namespace MMBotGA.ga.fitness
             var extra = Math.Min(aboveTarget, vMaxAboveTarget) / vMaxAboveTarget;
 
             return 0.75 * baseline + 0.25 * extra;
+        }
+
+        public static double PercentageDifference(
+            double firstValue,
+            double secondValue
+        )
+        {
+            double numerator = Math.Abs(firstValue - secondValue);
+            double denominator = (firstValue + secondValue) / 2;
+
+            if (numerator != 0)
+            {
+                double percentageDiff = (numerator / denominator) * 100;
+                return percentageDiff;
+            }
+
+            return 0;
         }
     }
 }

@@ -32,8 +32,8 @@ namespace MMBotGA.data.provider
             new()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("AVAX", "PERP"),
-                Balance = 1100
+                Pair = new Pair("MRNA", "0325"),
+                Balance = 1000
             },
             //new()
             //{
