@@ -74,6 +74,8 @@ namespace MMBotGA.ga.fitness
                 index++;
             }
 
+            
+
             double deviatedTradesRatio = deviatedTrades / resultsCounted;
             double deviationThresholdActual = 1 - deviatedTradesRatio;
             return deviationThresholdActual;
@@ -135,8 +137,8 @@ namespace MMBotGA.ga.fitness
             var interval = last.Tm - first.Tm;
             var profit = (Math.Max(last.Pl * 31536000000 / (interval * request.RunRequest.Balance), 0)) * 100;
 
-            if (profit <= 0) 
-            { return 0; } 
+            if (profit <= 0)
+            { return 0; }
             else 
             { return profit; }
 
@@ -188,7 +190,7 @@ namespace MMBotGA.ga.fitness
             return (double)goodDay / totalDays;
         }
 
-        private static double ensureMinimumTradeCount(
+        private static int ensureMinimumTradeCount(
             ICollection<RunResponse> results,
             int tradesPerDayThreshold
         )
@@ -216,19 +218,20 @@ namespace MMBotGA.ga.fitness
         {
             if (results == null || results.Count == 0) return new FitnessComposition();
 
-            const double rrrWeight = 0.2;
-            const double tightenNplRpnlWeight = 0.3;
-            const double ipdrWeight = 0.5;
+            const double rrrWeight = 0.4;
+            const double tightenNplRpnlWeight = 0.6;
+            //const double ipdrWeight = 0;
 
-            const double tightenNplRpnlThreshold = 1; // % oscilace profit&loss kolem normalized profit.
-            const double tightenEquityThreshold = 0.5;
+            const double tightenNplRpnlThreshold = 0.75; // % oscilace profit&loss kolem normalized profit.
+            const double tightenEquityThreshold = 0.75;
 
             //var eventCheck = CheckForEvents(results); //0-1, nic jiného nevrací.
             var result = new FitnessComposition();
+            var minimumTradeCountCheck = ensureMinimumTradeCount(results, 9);
 
             result.RRR = rrrWeight * Rrr(results);
             result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results, tightenEquityThreshold, tightenNplRpnlThreshold);
-            result.IncomePerDayRatio = ipdrWeight * IncomePerDayRatio(results);
+            //result.IncomePerDayRatio = ipdrWeight * IncomePerDayRatio(results);
             result.PnlProfitPerYear = PnlProfitPerYear(request, results);
 
             #region FitnessTriangleCalculation
@@ -237,7 +240,7 @@ namespace MMBotGA.ga.fitness
 
             var interval = last.Tm - first.Tm;
             var backtestDays = (interval / 86400000);
-            var penalization = backtestDays * (result.RRR + result.TightenNplRpnl + result.IncomePerDayRatio);
+            var penalization = backtestDays * (minimumTradeCountCheck * (result.RRR + result.TightenNplRpnl));// + result.IncomePerDayRatio);
 
             double xDiff = backtestDays - (penalization); //higher the penalization, lower the penalization.
             double yDiff = result.PnlProfitPerYear;

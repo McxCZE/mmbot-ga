@@ -6,7 +6,7 @@ using Downloader.Core.Core;
 using MMBotGA.backtest;
 using MMBotGA.data.exchange;
 using MMBotGA.downloader;
-using MMBotGA.ga;
+//using MMBotGA.ga;
 using MMBotGA.ga.abstraction;
 using Newtonsoft.Json;
 
@@ -34,10 +34,11 @@ namespace MMBotGA.data.provider
         {
             new()
             {
-                Exchange = Exchange.Ftx,
-                Pair = new Pair("FTM", "PERP"),
-                Balance = 1000
+                Exchange = Exchange.Kucoin,
+                Pair = new Pair("TRAC", "BTC"),
+                Balance = 0.01
             },
+            #region AdamsFamily
             //new()
             //{
             //    Exchange = Exchange.Ftx,
@@ -99,6 +100,7 @@ namespace MMBotGA.data.provider
             //    })
             //},
             //
+            #endregion
         };
 
         public Batch[] GetBacktestData(IProgress progressCallback)
