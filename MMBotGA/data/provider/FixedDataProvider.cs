@@ -34,9 +34,9 @@ namespace MMBotGA.data.provider
         {
             new()
             {
-                Exchange = Exchange.Kucoin,
-                Pair = new Pair("VRA", "BTC"),
-                Balance = 0.01
+                Exchange = Exchange.Ftx,
+                Pair = new Pair("CAKE", "PERP"),
+                Balance = 1000
             },
             #region AdamsFamily
             //new()

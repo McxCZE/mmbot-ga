@@ -222,15 +222,16 @@ namespace MMBotGA.ga.fitness
             const double tightenNplRpnlWeight = 1;
             //const double ipdrWeight = 0;
 
-            const double tightenNplRpnlThreshold = 0.75; // % oscilace profit&loss kolem normalized profit.
-            const double tightenEquityThreshold = 0.75;
-            const int minimumTradesThreshold = 9; //minimum of x trades per day.
+            const double tightenNplRpnlThreshold = 1.5; // % oscilace profit&loss kolem normalized profit.
+            const double tightenEquityThreshold = 1.5;
+            const int minimumTradesThreshold = 8; //minimum of x trades per day.
 
             //var eventCheck = CheckForEvents(results); //0-1, nic jiného nevrací.
             var result = new FitnessComposition();
 
             //result.RRR = rrrWeight * Rrr(results);
             result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results, tightenEquityThreshold, tightenNplRpnlThreshold, minimumTradesThreshold);
+            if (result.TightenNplRpnl < 0) result.TightenNplRpnl = 0;
             //result.IncomePerDayRatio = ipdrWeight * IncomePerDayRatio(results);
             result.PnlProfitPerYear = PnlProfitPerYear(request, results);
 
@@ -242,7 +243,10 @@ namespace MMBotGA.ga.fitness
             var backtestDays = (interval / 86400000);
             var penalization = backtestDays * result.TightenNplRpnl;// + result.IncomePerDayRatio);
 
-            double xDiff = backtestDays - (penalization); //higher the penalization = lower the penalization.
+            if (penalization == 0) { backtestDays = 5 * backtestDays; } // Kickstart, like old LADA.
+
+            double xDiff = backtestDays - (penalization); //if negative penalization, it turns into positive thus increasing the base
+            // of triangle, hence introducing 
             double yDiff = result.PnlProfitPerYear;
             var fitnessAngle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
 
