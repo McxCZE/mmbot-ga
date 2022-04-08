@@ -71,7 +71,7 @@ namespace MMBotGA.ga.fitness
                     }
                 }
                 if (tradeSize == 0) { 
-                    deviatedTrades += 1;
+                    deviatedTrades += 2;
                 }
                 index++;
             }
