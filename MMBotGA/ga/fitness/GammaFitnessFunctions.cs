@@ -28,10 +28,12 @@ namespace MMBotGA.ga.fitness
         public static double TightenNplRpnlSubmergedFunction(
             ICollection<RunResponse> results,
             double tightenNplRpnlThreshold,
-            double tightenEquityThreshold
+            double tightenEquityThreshold,
+            int minimumTradeCountThreshold
         )
         {
             if (results.Count == 0) { return 0; }
+            if (ensureMinimumTradeCount(results, minimumTradeCountThreshold)) { return 0; }
 
             double deviatedTrades = 0;
             double resultsCounted = results.Count();
@@ -95,7 +97,46 @@ namespace MMBotGA.ga.fitness
 
             return deviated;
         }
+        private static double PnlProfitPerYear(
+            BacktestRequest request,
+            ICollection<RunResponse> results
+        )
+        {
+            if (results.Count < 2) return 0;
+            var last = results.Last();
+            var first = results.First();
 
+            var interval = last.Tm - first.Tm;
+            var profit = (Math.Max(last.Pl * 31536000000 / (interval * request.RunRequest.Balance), 0)) * 100;
+
+            if (profit <= 0)
+            { return 0; }
+            else 
+            { return profit; }
+
+        }
+        private static bool ensureMinimumTradeCount(
+            ICollection<RunResponse> results,
+            int tradesPerDayThreshold
+        )
+        {
+            if (results.Count < 2) return false;
+
+            var last = results.Last();
+            var first = results.First();
+
+            var trades = results.Count(x => x.Sz != 0);
+            var alerts = 1 - (results.Count - trades) / (double)results.Count;
+
+            //if (trades == 0 || alerts / trades > 0.02) return false; //alerts / trades > 0.02
+
+            var days = (last.Tm - first.Tm) / 86400000d;
+            var tradesPerDay = trades / days;
+
+            if (tradesPerDay > tradesPerDayThreshold) { return false; } else { return true; } //if failed check, return true.
+        }
+
+        #region NotFoundUseFor
         public static double Rrr(
             ICollection<RunResponse> results
         )
@@ -123,28 +164,7 @@ namespace MMBotGA.ga.fitness
 
             var result = Math.Max(maxPl / maxDowndraw, 0);
             return Normalize(result, 5, 10, null);
-        }
-
-        private static double PnlProfitPerYear(
-            BacktestRequest request,
-            ICollection<RunResponse> results
-        )
-        {
-            if (results.Count < 2) return 0;
-            var last = results.Last();
-            var first = results.First();
-
-            var interval = last.Tm - first.Tm;
-            var profit = (Math.Max(last.Pl * 31536000000 / (interval * request.RunRequest.Balance), 0)) * 100;
-
-            if (profit <= 0)
-            { return 0; }
-            else 
-            { return profit; }
-
-        }
-
-        #region NotFoundUseFor
+        }        
         private static double IncomePerDayRatio(
             ICollection<RunResponse> results
         )
@@ -189,26 +209,6 @@ namespace MMBotGA.ga.fitness
 
             return (double)goodDay / totalDays;
         }
-
-        private static int ensureMinimumTradeCount(
-            ICollection<RunResponse> results,
-            int tradesPerDayThreshold
-        )
-        {
-            if (results.Count < 2) return 0;
-            var last = results.Last();
-            var first = results.First();
-
-            var trades = results.Count(x => x.Sz != 0);
-            var alerts = 1 - (results.Count - trades) / (double)results.Count;
-
-            if (trades == 0 || alerts / trades > 0.02) return 0; //alerts / trades > 0.02
-
-            var days = (last.Tm - first.Tm) / 86400000d;
-            var tradesPerDay = trades / days;
-
-            if (tradesPerDay > tradesPerDayThreshold) { return 1; } else { return 0; }
-        }
         #endregion
 
         public static FitnessComposition NpaRrr(
@@ -218,19 +218,19 @@ namespace MMBotGA.ga.fitness
         {
             if (results == null || results.Count == 0) return new FitnessComposition();
 
-            const double rrrWeight = 0.4;
-            const double tightenNplRpnlWeight = 0.6;
+            //const double rrrWeight = 0.4;
+            const double tightenNplRpnlWeight = 1;
             //const double ipdrWeight = 0;
 
             const double tightenNplRpnlThreshold = 0.75; // % oscilace profit&loss kolem normalized profit.
             const double tightenEquityThreshold = 0.75;
+            const int minimumTradesThreshold = 9; //minimum of x trades per day.
 
             //var eventCheck = CheckForEvents(results); //0-1, nic jiného nevrací.
             var result = new FitnessComposition();
-            var minimumTradeCountCheck = ensureMinimumTradeCount(results, 9);
 
-            result.RRR = rrrWeight * Rrr(results);
-            result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results, tightenEquityThreshold, tightenNplRpnlThreshold);
+            //result.RRR = rrrWeight * Rrr(results);
+            result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results, tightenEquityThreshold, tightenNplRpnlThreshold, minimumTradesThreshold);
             //result.IncomePerDayRatio = ipdrWeight * IncomePerDayRatio(results);
             result.PnlProfitPerYear = PnlProfitPerYear(request, results);
 
@@ -240,9 +240,9 @@ namespace MMBotGA.ga.fitness
 
             var interval = last.Tm - first.Tm;
             var backtestDays = (interval / 86400000);
-            var penalization = backtestDays * (minimumTradeCountCheck * (result.RRR + result.TightenNplRpnl));// + result.IncomePerDayRatio);
+            var penalization = backtestDays * result.TightenNplRpnl;// + result.IncomePerDayRatio);
 
-            double xDiff = backtestDays - (penalization); //higher the penalization, lower the penalization.
+            double xDiff = backtestDays - (penalization); //higher the penalization = lower the penalization.
             double yDiff = result.PnlProfitPerYear;
             var fitnessAngle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
 
@@ -255,7 +255,6 @@ namespace MMBotGA.ga.fitness
             //            /                          |
             //      / pAngle                         |
             //      ---------------days---------------
-
             result.Fitness = fitnessAngle;
             #endregion
 

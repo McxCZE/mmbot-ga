@@ -8,7 +8,7 @@ namespace MMBotGA.io
         public FitnessCompositionMap()
         {
             Map(x => x.PnlProfitPerYear).Index(203);
-            Map(x => x.IncomePerDayRatio).Index(200);
+            //Map(x => x.IncomePerDayRatio).Index(200);
             //Map(x => x.LowerPositionFactor).Index(201);
             //Map(x => x.MaxCostFactor).Index(202);
             Map(x => x.RRR).Index(204);

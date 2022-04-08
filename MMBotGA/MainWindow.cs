@@ -161,7 +161,8 @@ namespace MMBotGA
                     _txtFitness.Text = string.Empty;
                 });
 
-                var population = new Population(1500, 3000, batch.AdamChromosome);
+                //var population = new Population(1500, 3000, batch.AdamChromosome);
+                var population = new Population(750, 1500, batch.AdamChromosome);
                 var ga = new GeneticAlgorithm(population, batch.ToFitness(_currentProgressBar, apiPool),
                     selection, crossover,
                     mutation)

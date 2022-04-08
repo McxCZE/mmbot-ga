@@ -324,13 +324,13 @@ namespace MMBotGA.ga.fitness
             //todo simplify all pl metrics ... ensure pl ascending trend
 
             var result = new FitnessComposition();
-            result.Fitness = pppyWeight * (result.PnlProfitPerYear = PnlProfitPerYear(request, results))
-                          //+ ipdrWeight * (result.IncomePerDayRatio = IncomePerDayRatio(results))
-                          + rrrWeight * (result.RRR = Rrr(results))
-                          + tradeCountWeight * (result.TradeCountFactor = TradeCountFactor(results))
-                          + lpoWeight * (result.LowerPositionFactor = LowerPositionOverall(request, results, balanceThreshold))
-                          + mcWeight * (result.MaxCostFactor = MaxCost(request, results, maxCostThreshold))
-                          + rpnlWeight * (result.RpnlFactor = RpnlDayFactor(request, results));
+            result.Fitness = pppyWeight * (result.PnlProfitPerYear = PnlProfitPerYear(request, results));
+                          ////+ ipdrWeight * (result.IncomePerDayRatio = IncomePerDayRatio(results))
+                          //+ rrrWeight * (result.RRR = Rrr(results))
+                          //+ tradeCountWeight * (result.TradeCountFactor = TradeCountFactor(results))
+                          //+ lpoWeight * (result.LowerPositionFactor = LowerPositionOverall(request, results, balanceThreshold))
+                          //+ mcWeight * (result.MaxCostFactor = MaxCost(request, results, maxCostThreshold))
+                          //+ rpnlWeight * (result.RpnlFactor = RpnlDayFactor(request, results));
 
             Log.Debug($"Fitness : {result.Fitness}");
 
