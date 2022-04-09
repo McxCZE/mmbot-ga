@@ -32,11 +32,23 @@ namespace MMBotGA.data.provider
 
         private static IEnumerable<AllocationDefinition> AllocationDefinitions => new AllocationDefinition[]
         {
+            //new()
+            //{
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("LINK", "PERP"),
+            //    Balance = 1000
+            //},
+            //new()
+            //{
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("LUNA", "PERP"),
+            //    Balance = 2000
+            //},
             new()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("CAKE", "PERP"),
-                Balance = 1000
+                Pair = new Pair("ALPHA", "PERP"),
+                Balance = 2000
             },
             #region AdamsFamily
             //new()

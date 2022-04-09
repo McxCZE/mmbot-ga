@@ -7,7 +7,7 @@ namespace MMBotGA.ga
     {
         public static BacktestRequest ToBacktestRequest(this SpreadChromosome chromosome, IStrategy strategy)
         {
-            const bool sliding = false;
+            //const string sliding = "false";
             var freeze = chromosome.Freeze;
             var dynMult = chromosome.DynMult;
 
@@ -23,7 +23,7 @@ namespace MMBotGA.ga
                     Cap = chromosome.Cap,
                     Fall = chromosome.Fall,
                     Mode = chromosome.Mode,
-                    Sliding = sliding,
+                    Sliding = chromosome.Sliding,
                     SpreadFreeze = freeze,
                     DynMult = dynMult,
                     Reverse = false,
@@ -45,11 +45,10 @@ namespace MMBotGA.ga
                         Strategy = strategy,
                         Enabled = true,
                         AdjTimeout = 5,
-
                         SpreadCalcSmaHours = chromosome.Sma,
                         SpreadCalcStdevHours = chromosome.Stdev,
                         DynmultMode = chromosome.Mode,
-                        DynmultSliding = sliding,
+                        DynmultSliding = chromosome.Sliding,
                         SpreadFreeze = freeze,
                         DynmultMult = dynMult,
                         DynmultRaise = chromosome.Raise,

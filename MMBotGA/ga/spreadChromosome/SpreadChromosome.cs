@@ -26,12 +26,14 @@ namespace MMBotGA.ga
             Fall = Factory.Create(() => RandomizationProvider.Current.GetDouble(0.1, 10));
             Cap = Factory.Create(() => RandomizationProvider.Current.GetDouble(0, 100));
             ModeGene = Factory.Create(() => RandomizationProvider.Current.GetInt(0, _modes.Length));
+            //ModeGeneSlide = Factory.Create(() => RandomizationProvider.Current.GetInt(0, _slide.Length));
             DynMultGene = Factory.Create(() => RandomizationProvider.Current.GetInt(0, 2));
             FreezeGene = Factory.Create(() => RandomizationProvider.Current.GetInt(0, 2));
-            //SecondaryOrder = Factory.Create(() => RandomizationProvider.Current.GetDouble(0,200));
+            SecondaryOrder = Factory.Create(() => RandomizationProvider.Current.GetDouble(0, 200));
 
             //Static gene example:
-            SecondaryOrder = Factory.Create(0d);
+            //SecondaryOrder = Factory.Create(0d);
+            ModeGeneSlide = Factory.Create(1);
 
             if (finalize)
             {
@@ -56,6 +58,10 @@ namespace MMBotGA.ga
         public GeneWrapper<double> Raise { get; }
         public GeneWrapper<double> Fall { get; }
         public GeneWrapper<double> Cap { get; }
+        public GeneWrapper<int> ModeGeneSlide { get; }
+        private readonly bool[] _slide = { true, false };
+        
+        public bool Sliding => _slide[ModeGeneSlide.Value];
 
         private readonly string[] _modes = { "disabled", "independent", "together", "alternate", "half_alternate" }; // "disabled"
         private GeneWrapper<int> ModeGene { get; }
