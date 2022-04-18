@@ -36,49 +36,53 @@ namespace MMBotGA.ga.fitness
             if (ensureMinimumTradeCount(results, minimumTradeCountThreshold)) { return 0; }
 
             double deviatedTrades = 0;
-            double resultsCounted = results.Count();
+            double tradesCounted = results.Count();
+            var trades = results.Where(x => x.Info != null);
 
             int index = 0;
 
-            foreach (var result in results)
+            foreach (var trade in trades)
             {
+                double pLast = trade.Info.PriceLast;
+                double pNeutral = trade.Info.PriceNeutral;
 
-                double npl = result.Npl;
-                double rpnl = result.Rpnl;
-                double tradeSize = result.Sz;
+                double np = trade.Np;
+                double tradeSize = trade.Sz;
+                double pl = trade.Pl;
+                double rpnl = trade.Rpnl;
 
-                double percentageDiffCalculation = PercentageDifference(npl, rpnl);
+
+                double percDiffPlRpnl = PercentageDifference(pl, rpnl);
+                double percDiffOpPr = PercentageDifference(pLast, pNeutral);
+
+                double percDiffpNeutralpLastEvaluated;
+                double percDiffPlRpnlEvaluated;
 
                 if (tradeSize != 0)
                 {
-                    if (percentageDiffCalculation > tightenNplRpnlThreshold)
-                    {
-                        deviatedTrades += 1;
+                    //f(y) = x/100 * x/(5-10);
+                    percDiffpNeutralpLastEvaluated = (percDiffOpPr / 100) * (percDiffOpPr / 2.5);
+                    percDiffPlRpnlEvaluated = (percDiffOpPr / 100) * (percDiffOpPr / 7);
 
-                        if (GetEquityToFollow(result, tightenEquityThreshold))
-                        {
-                            deviatedTrades += 1;
-                        }
+                    if (pLast < pNeutral) { 
+                        deviatedTrades += percDiffpNeutralpLastEvaluated;
                     }
 
-                    if (null != result.Info)
-                    {
-                        //double budgetCurrent = result.Info.BudgetCurrent;
-                        //double budgetMax = result.Info.BudgetMax;
-                        //double percentageDiffBudgetCalc = PercentageDifference(budgetCurrent, budgetMax);
+                    deviatedTrades += percDiffPlRpnlEvaluated;
 
-                        //if (percentageDiffBudgetCalc > howDeepToDive) { deviatedTrades += 1; }
-                    }
+                    //if (null != trade.Info)
+                    //{
+                    //}
                 }
-                if (tradeSize == 0) { 
-                    deviatedTrades += 2;
-                }
+
+                if (tradeSize == 0) { deviatedTrades += 2; }
+
                 index++;
             }
 
             
 
-            double deviatedTradesRatio = deviatedTrades / resultsCounted;
+            double deviatedTradesRatio = deviatedTrades / tradesCounted;
             double deviationThresholdActual = 1 - deviatedTradesRatio;
             return deviationThresholdActual;
         }
@@ -133,7 +137,10 @@ namespace MMBotGA.ga.fitness
             var days = (last.Tm - first.Tm) / 86400000d;
             var tradesPerDay = trades / days;
 
-            if (tradesPerDay > tradesPerDayThreshold) { return false; } else { return true; } //if failed check, return true.
+            if (tradesPerDay > tradesPerDayThreshold) 
+            { return false; } 
+            else 
+            { return true; } //if failed check, return true.
         }
 
         #region NotFoundUseFor
@@ -222,17 +229,19 @@ namespace MMBotGA.ga.fitness
             const double tightenNplRpnlWeight = 1;
             //const double ipdrWeight = 0;
 
-            const double tightenNplRpnlThreshold = 1.5; // % oscilace profit&loss kolem normalized profit.
+            const double tightenNplRpnlThreshold = 1.5; //
             const double tightenEquityThreshold = 1.5;
-            const int minimumTradesThreshold = 8; //minimum of x trades per day.
+            const int minimumTradesThreshold = 7; //minimum of x trades per day. Does not work, need to reinstate somehow more brutal.
 
             //var eventCheck = CheckForEvents(results); //0-1, nic jiného nevrací.
             var result = new FitnessComposition();
 
-            //result.RRR = rrrWeight * Rrr(results);
-            result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results, tightenEquityThreshold, tightenNplRpnlThreshold, minimumTradesThreshold);
+            result.RRR = Rrr(results);
+            result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results,
+                tightenEquityThreshold,
+                tightenNplRpnlThreshold,
+                minimumTradesThreshold);
             if (result.TightenNplRpnl < 0) result.TightenNplRpnl = 0;
-            //result.IncomePerDayRatio = ipdrWeight * IncomePerDayRatio(results);
             result.PnlProfitPerYear = PnlProfitPerYear(request, results);
 
             #region FitnessTriangleCalculation
@@ -250,14 +259,17 @@ namespace MMBotGA.ga.fitness
             double yDiff = result.PnlProfitPerYear;
             var fitnessAngle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
 
-            if (penalization < 0) { fitnessAngle = 0; }
+            if (penalization < 0 || ensureMinimumTradeCount(results, minimumTradesThreshold)) 
+            {
+                fitnessAngle = 0;
+            }
 
             //                                      /|
             //                                /      |
             //                         /             |
             //                  /                  profit
             //            /                          |
-            //      / pAngle                         |
+            //      / fitnessAngle                   |
             //      ---------------days---------------
             result.Fitness = fitnessAngle;
             #endregion
@@ -293,7 +305,7 @@ namespace MMBotGA.ga.fitness
             if (numerator != 0)
             {
                 double percentageDiff = (numerator / denominator) * 100;
-                return percentageDiff;
+                return Math.Abs(percentageDiff);
             }
 
             return 0;

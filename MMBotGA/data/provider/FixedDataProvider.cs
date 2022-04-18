@@ -17,7 +17,7 @@ namespace MMBotGA.data.provider
         private const string DataFolder = "data";
 
         private int lookBackBacktestDays = -365; //How far do we backtest back?
-        private int lookBackControlDays = -60; //How far is the control set?
+        private int lookBackControlDays = -365; //How far is the control set?
 
         protected virtual DataProviderSettings Settings => new()
         {
@@ -47,8 +47,8 @@ namespace MMBotGA.data.provider
             new()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("ALPHA", "PERP"),
-                Balance = 2000
+                Pair = new Pair("LUNA", "PERP"),
+                Balance = 1000
             },
             #region AdamsFamily
             //new()
