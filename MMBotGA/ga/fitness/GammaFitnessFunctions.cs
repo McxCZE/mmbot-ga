@@ -70,13 +70,10 @@ namespace MMBotGA.ga.fitness
                     //percDiffPlRpnlEvaluated = (percDiffPlNpl / 100) * (percDiffPlNpl / plRpnlWeight); 
                     
 
-                    if (pLast < pNeutral) { 
-                        //Calc penalization for trade only if priceLast is lower then priceNeutral.
-                        //(meaning, that MMbot is not catching up on downtrend quick enough)                        
-                        deviatedTrades += percDiffpNeutralpLastEvaluated;
-                        //deviatedTrades += percDiffPlRpnlEvaluated;
-                    }
-
+                    //Calc penalization for trade only if priceLast is lower then priceNeutral.
+                    //(meaning, that MMbot is not catching up on downtrend quick enough)                        
+                    deviatedTrades += percDiffpNeutralpLastEvaluated;
+                    //deviatedTrades += percDiffPlRpnlEvaluated;
                 }
 
                 if (tradeSize == 0) { deviatedTrades += 2; }
