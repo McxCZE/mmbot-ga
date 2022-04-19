@@ -47,35 +47,36 @@ namespace MMBotGA.ga.fitness
                 double np = trade.Np;
                 double tradeSize = trade.Sz;
                 double pl = trade.Pl;
-                double rpnl = trade.Rpnl;
+                double npl = trade.Npl;
 
 
-                double percDiffPlRpnl = PercentageDifference(pl, rpnl);
+                double percDiffPlNpl = PercentageDifference(pl, npl);
                 double percDiffOpPr = PercentageDifference(pLast, pNeutral);
 
                 double percDiffpNeutralpLastEvaluated;
-                double percDiffPlRpnlEvaluated;
+                //double percDiffPlRpnlEvaluated;
 
-                double opPrWeight = 2.5; // 1-10 < lower the weight, more aggressive.
-                double plRpnlWeight = 4.5; // same as above.
+                double opPrWeight = 5; // 1-10 < lower the weight, more aggressive.
+                //double plRpnlWeight = 10; // same as above. Not used, have negative impact on profits.
+
+                //Explanation :
+                //If measuring diff in npl and pl in percentage, can heavily impact profit, because further down we go, the bigger 
+                //penalization, but we need to aggresively buy in downtrend direction to overturn it in slight upward tick.
 
                 if (tradeSize != 0)
                 {
                     //f(y) = x/100 * x/(5-10);
                     percDiffpNeutralpLastEvaluated = (percDiffOpPr / 100) * (percDiffOpPr / opPrWeight); 
-                    percDiffPlRpnlEvaluated = (percDiffPlRpnl / 100) * (percDiffPlRpnl / plRpnlWeight);
+                    //percDiffPlRpnlEvaluated = (percDiffPlNpl / 100) * (percDiffPlNpl / plRpnlWeight); 
+                    
 
                     if (pLast < pNeutral) { 
                         //Calc penalization for trade only if priceLast is lower then priceNeutral.
                         //(meaning, that MMbot is not catching up on downtrend quick enough)                        
                         deviatedTrades += percDiffpNeutralpLastEvaluated;
+                        //deviatedTrades += percDiffPlRpnlEvaluated;
                     }
 
-                    deviatedTrades += percDiffPlRpnlEvaluated;
-
-                    //if (null != trade.Info)
-                    //{
-                    //}
                 }
 
                 if (tradeSize == 0) { deviatedTrades += 2; }
