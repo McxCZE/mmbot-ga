@@ -56,7 +56,7 @@ namespace MMBotGA.ga.fitness
                 double percDiffpNeutralpLastEvaluated;
                 //double percDiffPlRpnlEvaluated;
 
-                double opPrWeight = 5; // 1-10 < lower the weight, more aggressive.
+                double opPrWeight = 1.5; // 1-10 < lower the weight, more aggressive. <- Do not touch def. : 1.5
                 //double plRpnlWeight = 10; // same as above. Not used, have negative impact on profits.
 
                 //Explanation :
@@ -230,9 +230,7 @@ namespace MMBotGA.ga.fitness
             const double tightenNplRpnlWeight = 1;
             //const double ipdrWeight = 0;
 
-            const double tightenNplRpnlThreshold = 1.5; //Dynamic as of now.
-            const double tightenEquityThreshold = 1.5; //Dynamic as of now.
-            const int minimumTradesThreshold = 7; //minimum of x trades per day. Does not work, need to reinstate somehow more brutal.
+            const int minimumTradesThreshold = 7; //minimum of x trades per day.
 
             //var eventCheck = CheckForEvents(results); //0-1, nic jiného nevrací.
             var result = new FitnessComposition();
