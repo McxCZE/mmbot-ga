@@ -247,7 +247,7 @@ namespace MMBotGA.ga.fitness
 
             var interval = last.Tm - first.Tm;
             var backtestDays = (interval / 86400000);
-            var penalization = backtestDays * result.TightenNplRpnl;// + result.IncomePerDayRatio);
+            var penalization = backtestDays * (result.TightenNplRpnl);// + result.RRR);
 
             if (penalization == 0) { backtestDays = 5 * backtestDays; } // Kickstart, like old LADA.
 

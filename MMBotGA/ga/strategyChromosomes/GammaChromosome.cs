@@ -14,11 +14,11 @@ namespace MMBotGA.ga
             Exponent = Factory.Create(() => RandomizationProvider.Current.GetDouble(1, 20));
             Trend = Factory.Create(() => RandomizationProvider.Current.GetDouble(-110, 0));
             Rebalance = Factory.Create(() => RandomizationProvider.Current.GetInt(3, 5)); // always/smart
-            //FunctionGene = Factory.Create(() => RandomizationProvider.Current.GetInt(0, _functions.Length));
+            FunctionGene = Factory.Create(() => RandomizationProvider.Current.GetInt(0, _functions.Length));
 
             //Static gene example:
             //Trend = _factory.Create(0d);
-            FunctionGene = Factory.Create(1);
+            //FunctionGene = Factory.Create(1);
 
             FinalizeGenes();
         }
@@ -30,7 +30,7 @@ namespace MMBotGA.ga
         public GeneWrapper<double> Trend { get; }
         public GeneWrapper<int> Rebalance { get; }
 
-        private readonly string[] _functions = { "halfhalf", "gauss" }; //"invsqrtsinh" "exponencial" "keepvalue"
+        private readonly string[] _functions = { "halfhalf", "gauss", "exponencial", "keepvalue" }; //"invsqrtsinh" "exponencial" "keepvalue"
         private GeneWrapper<int> FunctionGene { get; }
         public string Function => _functions[FunctionGene.Value];
 
