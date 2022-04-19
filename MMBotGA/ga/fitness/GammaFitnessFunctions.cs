@@ -44,14 +44,14 @@ namespace MMBotGA.ga.fitness
                 double pLast = trade.Info.PriceLast;
                 double pNeutral = trade.Info.PriceNeutral;
 
-                double np = trade.Np;
+                double np = trade.Np; //neutral price
                 double tradeSize = trade.Sz;
-                double pl = trade.Pl;
-                double npl = trade.Npl;
+                double pl = trade.Pl; //profit and loss
+                double npl = trade.Npl; //normalized profit
 
 
-                double percDiffPlNpl = PercentageDifference(pl, npl);
-                double percDiffOpPr = PercentageDifference(pLast, pNeutral);
+                //double percDiffPlNpl = PercentageDifference(pl, npl);
+                double percDiffpLastNp = PercentageDifference(pLast, np);
 
                 double percDiffpNeutralpLastEvaluated;
                 //double percDiffPlRpnlEvaluated;
@@ -66,7 +66,7 @@ namespace MMBotGA.ga.fitness
                 if (tradeSize != 0)
                 {
                     //f(y) = x/100 * x/(5-10);
-                    percDiffpNeutralpLastEvaluated = (percDiffOpPr / 100) * (percDiffOpPr / opPrWeight); 
+                    percDiffpNeutralpLastEvaluated = (percDiffpLastNp / 100) * (percDiffpLastNp / opPrWeight); 
                     //percDiffPlRpnlEvaluated = (percDiffPlNpl / 100) * (percDiffPlNpl / plRpnlWeight); 
                     
 
