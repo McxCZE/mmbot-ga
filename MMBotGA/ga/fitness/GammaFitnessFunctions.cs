@@ -56,11 +56,14 @@ namespace MMBotGA.ga.fitness
                 double percDiffpNeutralpLastEvaluated;
                 double percDiffPlRpnlEvaluated;
 
+                double opPrWeight = 2.5; // 1-10 < lower the weight, more aggressive.
+                double plRpnlWeight = 4.5; // same as above.
+
                 if (tradeSize != 0)
                 {
                     //f(y) = x/100 * x/(5-10);
-                    percDiffpNeutralpLastEvaluated = (percDiffOpPr / 100) * (percDiffOpPr / 2.5); //lower the second denominator, more aggresive is the penalization.
-                    percDiffPlRpnlEvaluated = (percDiffOpPr / 100) * (percDiffOpPr / 7);
+                    percDiffpNeutralpLastEvaluated = (percDiffOpPr / 100) * (percDiffOpPr / opPrWeight); 
+                    percDiffPlRpnlEvaluated = (percDiffPlRpnl / 100) * (percDiffPlRpnl / plRpnlWeight);
 
                     if (pLast < pNeutral) { 
                         //Calc penalization for trade only if priceLast is lower then priceNeutral.
