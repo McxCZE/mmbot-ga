@@ -47,7 +47,7 @@ namespace MMBotGA.data.provider
             new()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("LUNA", "PERP"),
+                Pair = new Pair("DOT", "PERP"),
                 Balance = 1000
             },
             #region AdamsFamily

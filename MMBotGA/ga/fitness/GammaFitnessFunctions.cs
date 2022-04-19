@@ -27,8 +27,6 @@ namespace MMBotGA.ga.fitness
 
         public static double TightenNplRpnlSubmergedFunction(
             ICollection<RunResponse> results,
-            double tightenNplRpnlThreshold,
-            double tightenEquityThreshold,
             int minimumTradeCountThreshold
         )
         {
@@ -61,10 +59,12 @@ namespace MMBotGA.ga.fitness
                 if (tradeSize != 0)
                 {
                     //f(y) = x/100 * x/(5-10);
-                    percDiffpNeutralpLastEvaluated = (percDiffOpPr / 100) * (percDiffOpPr / 2.5);
+                    percDiffpNeutralpLastEvaluated = (percDiffOpPr / 100) * (percDiffOpPr / 2.5); //lower the second denominator, more aggresive is the penalization.
                     percDiffPlRpnlEvaluated = (percDiffOpPr / 100) * (percDiffOpPr / 7);
 
                     if (pLast < pNeutral) { 
+                        //Calc penalization for trade only if priceLast is lower then priceNeutral.
+                        //(meaning, that MMbot is not catching up on downtrend quick enough)                        
                         deviatedTrades += percDiffpNeutralpLastEvaluated;
                     }
 
@@ -229,8 +229,8 @@ namespace MMBotGA.ga.fitness
             const double tightenNplRpnlWeight = 1;
             //const double ipdrWeight = 0;
 
-            const double tightenNplRpnlThreshold = 1.5; //
-            const double tightenEquityThreshold = 1.5;
+            const double tightenNplRpnlThreshold = 1.5; //Dynamic as of now.
+            const double tightenEquityThreshold = 1.5; //Dynamic as of now.
             const int minimumTradesThreshold = 7; //minimum of x trades per day. Does not work, need to reinstate somehow more brutal.
 
             //var eventCheck = CheckForEvents(results); //0-1, nic jiného nevrací.
@@ -238,8 +238,6 @@ namespace MMBotGA.ga.fitness
 
             result.RRR = Rrr(results);
             result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results,
-                tightenEquityThreshold,
-                tightenNplRpnlThreshold,
                 minimumTradesThreshold);
             if (result.TightenNplRpnl < 0) result.TightenNplRpnl = 0;
             result.PnlProfitPerYear = PnlProfitPerYear(request, results);
