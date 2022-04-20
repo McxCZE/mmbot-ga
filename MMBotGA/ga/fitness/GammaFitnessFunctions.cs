@@ -226,8 +226,8 @@ namespace MMBotGA.ga.fitness
         {
             if (results == null || results.Count == 0) return new FitnessComposition();
 
-            //const double rrrWeight = 0.4;
-            const double tightenNplRpnlWeight = 1;
+            const double rrrWeight = 0.5;
+            const double tightenNplRpnlWeight = 0.5;
             //const double ipdrWeight = 0;
 
             const int minimumTradesThreshold = 7; //minimum of x trades per day.
@@ -235,11 +235,12 @@ namespace MMBotGA.ga.fitness
             //var eventCheck = CheckForEvents(results); //0-1, nic jiného nevrací.
             var result = new FitnessComposition();
 
-            result.RRR = Rrr(results);
+            result.RRR = rrrWeight * Rrr(results);
             result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results,
                 minimumTradesThreshold);
             if (result.TightenNplRpnl < 0) result.TightenNplRpnl = 0;
             result.PnlProfitPerYear = PnlProfitPerYear(request, results);
+            result.rrrTightenCombined = result.RRR + result.TightenNplRpnl;
 
             #region FitnessTriangleCalculation
             var first = results.First();
@@ -247,7 +248,7 @@ namespace MMBotGA.ga.fitness
 
             var interval = last.Tm - first.Tm;
             var backtestDays = (interval / 86400000);
-            var penalization = backtestDays * (result.TightenNplRpnl);// + result.RRR);
+            var penalization = backtestDays * (result.rrrTightenCombined);// + result.RRR);
 
             if (penalization == 0) { backtestDays = 5 * backtestDays; } // Kickstart, like old LADA.
 

@@ -13,5 +13,6 @@
         //public double RpnlFactor { get; set; }
         //public double MinMaxBalanceTheBalanceFactor { get; set; }
         public double TightenNplRpnl { get; set; }
+        public double rrrTightenCombined { get; set; }
     }
 }

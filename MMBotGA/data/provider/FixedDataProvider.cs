@@ -38,18 +38,18 @@ namespace MMBotGA.data.provider
             //    Pair = new Pair("LINK", "PERP"),
             //    Balance = 1000
             //},
-            //new()
-            //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("LUNA", "PERP"),
-            //    Balance = 2000
-            //},
             new()
             {
-                Exchange = Exchange.Kucoin,
-                Pair = new Pair("WIN", "BTC"),
-                Balance = 0.02
+                Exchange = Exchange.Ftx,
+                Pair = new Pair("ATOM", "PERP"),
+                Balance = 2000
             },
+            //new()
+            //{
+            //    Exchange = Exchange.Kucoin,
+            //    Pair = new Pair("WIN", "BTC"),
+            //    Balance = 0.02
+            //},
             #region AdamsFamily
             //new()
             //{
