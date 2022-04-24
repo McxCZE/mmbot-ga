@@ -43,19 +43,11 @@ namespace MMBotGA.ga.fitness
             {
                 double pLast = trade.Info.PriceLast;
                 double pNeutral = trade.Info.PriceNeutral;
-
                 double np = trade.Np; //neutral price
                 double tradeSize = trade.Sz;
                 double pl = trade.Pl; //profit and loss
                 double npl = trade.Npl; //normalized profit
-
-
-                //double percDiffPlNpl = PercentageDifference(pl, npl);
                 double percDiffpLastNp = PercentageDifference(pLast, np);
-
-                double percDiffpNeutralpLastEvaluated;
-                //double percDiffPlRpnlEvaluated;
-
                 double opPrWeight = 1.5; // 1-10 < lower the weight, more aggressive. <- Do not touch def. : 1.5
                 //double plRpnlWeight = 10; // same as above. Not used, have negative impact on profits.
 
@@ -65,15 +57,8 @@ namespace MMBotGA.ga.fitness
 
                 if (tradeSize != 0)
                 {
-                    //f(y) = x/100 * x/(5-10);
-                    percDiffpNeutralpLastEvaluated = (percDiffpLastNp / 100) * (percDiffpLastNp / opPrWeight); 
-                    //percDiffPlRpnlEvaluated = (percDiffPlNpl / 100) * (percDiffPlNpl / plRpnlWeight); 
-                    
-
-                    //Calc penalization for trade only if priceLast is lower then priceNeutral.
-                    //(meaning, that MMbot is not catching up on downtrend quick enough)                        
-                    deviatedTrades += percDiffpNeutralpLastEvaluated;
-                    //deviatedTrades += percDiffPlRpnlEvaluated;
+                    //f(y) = x/100 * x/(1.5-10);
+                    deviatedTrades += (percDiffpLastNp / 100) * (percDiffpLastNp / opPrWeight);                 
                 }
 
                 if (tradeSize == 0) { deviatedTrades += 2; }
@@ -143,8 +128,6 @@ namespace MMBotGA.ga.fitness
             else 
             { return true; } //if failed check, return true.
         }
-
-        #region NotFoundUseFor
         public static double Rrr(
             ICollection<RunResponse> results
         )
@@ -171,8 +154,18 @@ namespace MMBotGA.ga.fitness
             }
 
             var result = Math.Max(maxPl / maxDowndraw, 0);
-            return Normalize(result, 5, 10, null);
-        }        
+
+            double xDiff = (results.Last().Tm - results.First().Tm) / 86400000;
+            double yDiff = result;
+            var rrrAngle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
+            var rrrAngleNormalized = rrrAngle / 90;
+
+            return rrrAngleNormalized;
+
+            //return Normalize(result, 5, 10, null);
+        } 
+
+        #region NotFoundUseFor
         private static double IncomePerDayRatio(
             ICollection<RunResponse> results
         )
@@ -228,13 +221,13 @@ namespace MMBotGA.ga.fitness
 
             const double rrrWeight = 0.5;
             const double tightenNplRpnlWeight = 0.5;
-            //const double ipdrWeight = 0;
 
             const int minimumTradesThreshold = 7; //minimum of x trades per day.
 
             //var eventCheck = CheckForEvents(results); //0-1, nic jiného nevrací.
             var result = new FitnessComposition();
 
+            #region FitnessTriangleCalculation
             result.RRR = rrrWeight * Rrr(results);
             result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results,
                 minimumTradesThreshold);
@@ -242,7 +235,7 @@ namespace MMBotGA.ga.fitness
             result.PnlProfitPerYear = PnlProfitPerYear(request, results);
             result.rrrTightenCombined = result.RRR + result.TightenNplRpnl;
 
-            #region FitnessTriangleCalculation
+
             var first = results.First();
             var last = results.Last();
 
@@ -252,27 +245,53 @@ namespace MMBotGA.ga.fitness
 
             if (penalization == 0) { backtestDays = 5 * backtestDays; } // Kickstart, like old LADA.
 
-            double xDiff = backtestDays - (penalization); //if negative penalization, it turns into positive thus increasing the base
-            // of triangle, hence introducing 
+            double xDiff = backtestDays - (penalization);
             double yDiff = result.PnlProfitPerYear;
             var fitnessAngle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
 
-            if (penalization < 0 || ensureMinimumTradeCount(results, minimumTradesThreshold)) 
+            if (penalization < 0 || ensureMinimumTradeCount(results, minimumTradesThreshold))
             {
                 fitnessAngle = 0;
             }
 
-            //                                      /|
-            //                                /      |
-            //                         /             |
-            //                  /                  profit
-            //            /                          |
-            //      / fitnessAngle                   |
-            //      ---------------days---------------
             result.Fitness = fitnessAngle;
+            return result;
             #endregion
 
-            return result;
+            #region MatasFit
+            //var t = results.ToList();
+            //if (!t.Any()) result.Fitness = 0;
+
+            //// continuity -> stable performance and delivery of budget extra
+            //// get profit at least every 14 days
+            //var frames = (int)(TimeSpan.FromMilliseconds(results.Last().Tm).TotalDays / 25);
+            //var gk = results.Last().Tm / frames;
+            //var lastBudgetExtra = 0d;
+            //var minFitness = double.MaxValue;
+
+            //for (var i = 0; i < frames; i++)
+            //{
+            //    var f0 = gk * i;
+            //    var f1 = gk * (i + 1);
+            //    var frameTrades = t
+            //        .SkipWhile(x => x.Tm < f0)
+            //        .TakeWhile(x => x.Tm < f1)
+            //        .ToList();
+
+            //    var currentBudgetExtra = frameTrades.LastOrDefault()?.Ubal ?? lastBudgetExtra;
+            //    var tradeFactor = 1; // TradeCountFactor(frameTrades);
+            //    var fitness = tradeFactor * (currentBudgetExtra - lastBudgetExtra);
+            //    if (fitness < minFitness)
+            //    {
+            //        minFitness = fitness;
+            //    }
+            //    lastBudgetExtra = currentBudgetExtra;
+            //}
+
+            //result.Fitness = minFitness;
+
+            //return result;
+            #endregion
         }
 
         public static double Normalize(
