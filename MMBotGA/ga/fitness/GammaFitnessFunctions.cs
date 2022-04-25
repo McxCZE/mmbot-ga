@@ -15,14 +15,8 @@ namespace MMBotGA.ga.fitness
             ICollection<RunResponse> results
         )
         {
-            if (results.Where(x => x.Event != null).Where(x => x.Event == "margin_call").Count() > 0)
-            {
-                return 0;
-            }
-            else
-            {
-                return 1;
-            };
+            if (results.Where(x => x.Event != null).Where(x => x.Event == "margin_call").Count() > 0) { return 0; }
+            return 1;
         }
 
         public static double TightenNplRpnlSubmergedFunction(
@@ -98,11 +92,8 @@ namespace MMBotGA.ga.fitness
             var interval = last.Tm - first.Tm;
             var profit = (Math.Max(last.Pl * 31536000000 / (interval * request.RunRequest.Balance), 0)) * 100;
 
-            if (profit <= 0)
-            { return 0; }
-            else 
-            { return profit; }
-
+            if (profit <= 0) { return 0; }
+            return profit;
         }
         private static bool ensureMinimumTradeCount(
             ICollection<RunResponse> results,
