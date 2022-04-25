@@ -41,15 +41,14 @@ namespace MMBotGA.ga.fitness
 
             foreach (var trade in trades)
             {
-                double pLast = trade.Info.PriceLast;
-                double pNeutral = trade.Info.PriceNeutral;
+                double pLast = trade.Info.PriceLast; //Last price, same as .pr. (I hope)
+                double pNeutral = trade.Info.PriceNeutral; //I have no idea, whats the diff between np, and priceNeutral.
                 double np = trade.Np; //neutral price
-                double tradeSize = trade.Sz;
+                double tradeSize = trade.Sz; //tradeSize
                 double pl = trade.Pl; //profit and loss
                 double npl = trade.Npl; //normalized profit
                 double percDiffpLastNp = PercentageDifference(pLast, np);
                 double opPrWeight = 1.5; // 1-10 < lower the weight, more aggressive. <- Do not touch def. : 1.5
-                //double plRpnlWeight = 10; // same as above. Not used, have negative impact on profits.
 
                 //Explanation :
                 //If measuring diff in npl and pl in percentage, can heavily impact profit, because further down we go, the bigger 
@@ -137,11 +136,7 @@ namespace MMBotGA.ga.fitness
             double maxPl = 0, minPl = 0, maxDowndraw = 0;
             foreach (var trade in results)
             {
-                if (trade.Pl > maxPl)
-                {
-                    minPl = maxPl = trade.Pl;
-                }
-
+                if (trade.Pl > maxPl) { minPl = maxPl = trade.Pl; }
                 if (trade.Pl < minPl)
                 {
                     minPl = trade.Pl;
@@ -158,11 +153,9 @@ namespace MMBotGA.ga.fitness
             double xDiff = (results.Last().Tm - results.First().Tm) / 86400000;
             double yDiff = result;
             var rrrAngle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
-            var rrrAngleNormalized = rrrAngle / 90;
+            var rrrAngleNormalized = rrrAngle / 90; // max angle. logically 90, therefore standardize to 0-1 fit scoring.
 
             return rrrAngleNormalized;
-
-            //return Normalize(result, 5, 10, null);
         } 
 
         #region NotFoundUseFor
@@ -219,40 +212,33 @@ namespace MMBotGA.ga.fitness
         {
             if (results == null || results.Count == 0) return new FitnessComposition();
 
+            #region Static defined variables.
             const double rrrWeight = 0.5;
-            const double tightenNplRpnlWeight = 0.5;
-
+            const double tightenNplRpnlWeight = 0.5;         
             const int minimumTradesThreshold = 7; //minimum of x trades per day.
-
-            //var eventCheck = CheckForEvents(results); //0-1, nic jiného nevrací.
+            #endregion
+            //var eventCheck = CheckForEvents(results); Not found use for.
             var result = new FitnessComposition();
 
             #region FitnessTriangleCalculation
+            if (ensureMinimumTradeCount(results, minimumTradesThreshold)) { result.Fitness = 0; return result; }
+
             result.RRR = rrrWeight * Rrr(results);
-            result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results,
-                minimumTradesThreshold);
-            if (result.TightenNplRpnl < 0) result.TightenNplRpnl = 0;
+            if (result.RRR <= 0) { result.Fitness = 0; return result; } //Nonsense to continue. Escape routine.
+            result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results, minimumTradesThreshold);
+            if (result.TightenNplRpnl <= 0) { result.Fitness = 0; return result; } //Nonsense to continue. Escape routine.
             result.PnlProfitPerYear = PnlProfitPerYear(request, results);
+            if (result.PnlProfitPerYear <= 0) { result.Fitness = 0; return result; } //Nonsense to continue. Escape routine.
+
             result.rrrTightenCombined = result.RRR + result.TightenNplRpnl;
 
-
-            var first = results.First();
-            var last = results.Last();
-
-            var interval = last.Tm - first.Tm;
+            var interval = results.Last().Tm - results.Last().Tm;
             var backtestDays = (interval / 86400000);
             var penalization = backtestDays * (result.rrrTightenCombined);// + result.RRR);
-
-            if (penalization == 0) { backtestDays = 5 * backtestDays; } // Kickstart, like old LADA.
 
             double xDiff = backtestDays - (penalization);
             double yDiff = result.PnlProfitPerYear;
             var fitnessAngle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
-
-            if (penalization < 0 || ensureMinimumTradeCount(results, minimumTradesThreshold))
-            {
-                fitnessAngle = 0;
-            }
 
             result.Fitness = fitnessAngle;
             return result;

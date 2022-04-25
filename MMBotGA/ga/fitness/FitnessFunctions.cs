@@ -308,33 +308,38 @@ namespace MMBotGA.ga.fitness
         {
             if (results == null || results.Count == 0) return new FitnessComposition();
 
-            const double rpnlWeight = 0.30;
-            const double rrrWeight = 0.25;
-            const double mcWeight = 0.15;
-            const double pppyWeight = 0.15;
-            const double lpoWeight = 0.10;
-            const double tradeCountWeight = 0.05;
-            const double ipdrWeight = 0;
-
-            Debug.Assert(Math.Abs(pppyWeight + ipdrWeight + lpoWeight + rrrWeight + tradeCountWeight + mcWeight + rpnlWeight - 1) < 0.01);
-
-            const double balanceThreshold = 0.1;
-            const double maxCostThreshold = 0.8;
-
-            //todo simplify all pl metrics ... ensure pl ascending trend
-
             var result = new FitnessComposition();
-            result.Fitness = pppyWeight * (result.PnlProfitPerYear = PnlProfitPerYear(request, results));
-                          ////+ ipdrWeight * (result.IncomePerDayRatio = IncomePerDayRatio(results))
-                          //+ rrrWeight * (result.RRR = Rrr(results))
-                          //+ tradeCountWeight * (result.TradeCountFactor = TradeCountFactor(results))
-                          //+ lpoWeight * (result.LowerPositionFactor = LowerPositionOverall(request, results, balanceThreshold))
-                          //+ mcWeight * (result.MaxCostFactor = MaxCost(request, results, maxCostThreshold))
-                          //+ rpnlWeight * (result.RpnlFactor = RpnlDayFactor(request, results));
-
-            Log.Debug($"Fitness : {result.Fitness}");
-
+            result.Fitness = 0;
             return result;
+            //Not used, please use GammaFitnessFunctions/EpaFitnessFunctions
+
+            #region For documentation purposes only, not used.
+            //const double rpnlWeight = 0.30;
+            //const double rrrWeight = 0.25;
+            //const double mcWeight = 0.15;
+            //const double pppyWeight = 0.15;
+            //const double lpoWeight = 0.10;
+            //const double tradeCountWeight = 0.05;
+            //const double ipdrWeight = 0;
+
+            ////Debug.Assert(Math.Abs(pppyWeight + ipdrWeight + lpoWeight + rrrWeight + tradeCountWeight + mcWeight + rpnlWeight - 1) < 0.01);
+
+            //const double balanceThreshold = 0.1;
+            //const double maxCostThreshold = 0.8;
+
+            ////todo simplify all pl metrics ... ensure pl ascending trend
+
+            
+            //result.Fitness = pppyWeight * (result.PnlProfitPerYear = PnlProfitPerYear(request, results));
+            //              ////+ ipdrWeight * (result.IncomePerDayRatio = IncomePerDayRatio(results))
+            //              //+ rrrWeight * (result.RRR = Rrr(results))
+            //              //+ tradeCountWeight * (result.TradeCountFactor = TradeCountFactor(results))
+            //              //+ lpoWeight * (result.LowerPositionFactor = LowerPositionOverall(request, results, balanceThreshold))
+            //              //+ mcWeight * (result.MaxCostFactor = MaxCost(request, results, maxCostThreshold))
+            //              //+ rpnlWeight * (result.RpnlFactor = RpnlDayFactor(request, results));
+
+            //return result;
+            #endregion
         }
 
         private static double Normalize(double value, double target, double virtualMax, double? cap)
