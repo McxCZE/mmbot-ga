@@ -16,8 +16,8 @@ namespace MMBotGA.data.provider
     {
         private const string DataFolder = "data";
 
-        private int lookBackBacktestDays = -47; //How far do we backtest back?
-        private int lookBackControlDays = -47; //How far is the control set?
+        private int lookBackBacktestDays = -365; //How far do we backtest back?
+        private int lookBackControlDays = -60; //How far is the control set?
 
         protected virtual DataProviderSettings Settings => new()
         {
@@ -46,9 +46,9 @@ namespace MMBotGA.data.provider
             //},
             new()
             {
-                Exchange = Exchange.Kucoin,
-                Pair = new Pair("KAT", "BTC"),
-                Balance = 0.02
+                Exchange = Exchange.Ftx,
+                Pair = new Pair("ALPHA", "PERP"),
+                Balance = 1000
             },
             #region AdamsFamily
             //new()
@@ -124,7 +124,7 @@ namespace MMBotGA.data.provider
                 ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(0), TimeSpan.FromDays(lookBackBacktestDays))
                 : Settings.DateSettings.Backtest;
 
-            const int splits = 3; // 3
+            const int splits = 1; // No splits, fucks up Fitness
 
             return Settings.Allocations
                 .Select(x =>

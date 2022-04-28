@@ -223,8 +223,8 @@ namespace MMBotGA.ga.fitness
 
             result.rrrTightenCombined = result.RRR + result.TightenNplRpnl;
 
-            var interval = results.Last().Tm - results.Last().Tm;
-            var backtestDays = (interval / 86400000);
+            var interval = results.Last().Tm - results.First().Tm;
+            var backtestDays = (interval / 86400000d);
             var penalization = backtestDays * (result.rrrTightenCombined);// + result.RRR);
 
             double xDiff = backtestDays - (penalization);
