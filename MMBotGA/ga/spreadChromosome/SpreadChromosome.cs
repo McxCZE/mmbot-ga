@@ -19,8 +19,8 @@ namespace MMBotGA.ga
             Factory = new GeneFactory(this);
 
             // max is exclusive
-            Stdev = Factory.Create(() => RandomizationProvider.Current.GetDouble(1, 240));
-            Sma = Factory.Create(() => RandomizationProvider.Current.GetDouble(1, 240));
+            Stdev = Factory.Create(() => RandomizationProvider.Current.GetDouble(1, 120));
+            Sma = Factory.Create(() => RandomizationProvider.Current.GetDouble(1, 120));
             Mult = Factory.Create(() => RandomizationProvider.Current.GetDouble(0.1, 1.9));
             Raise = Factory.Create(() => RandomizationProvider.Current.GetDouble(1, 1000));
             Fall = Factory.Create(() => RandomizationProvider.Current.GetDouble(0.1, 10));
