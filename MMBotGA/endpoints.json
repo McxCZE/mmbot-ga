@@ -1,7 +1,7 @@
 [
   {
-    "LeaseCount": 10,
-    "Url": "http://192.168.88.160/api/admin/",
+    "LeaseCount": 2,
+    "Url": "http://172.16.9.11:82/api/admin/",
     "Username": "",
     "Password": ""
   }

@@ -106,5 +106,17 @@ namespace MMBotGA.ga
                 InvertProxy = false
             });
         }
+
+        public static BacktestRequest ToBacktestRequest(this McaChromosome chromosome, bool export)
+        {
+            return chromosome.ToBacktestRequest(new McaStrategy
+            {
+                Type = "mathematical_cost_averaging",
+                BuyStrength = chromosome.BuyStrength,
+                SellStrength = chromosome.SellStrength,
+                InitBet = chromosome.InitBet,
+                InvertProxy = false
+            });
+        }
     }
 }

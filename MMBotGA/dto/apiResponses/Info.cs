@@ -1,9 +1,11 @@
-﻿using System.Text.Json.Serialization;
+﻿#define Mca //Gamma, Mca
+using System.Text.Json.Serialization;
 
 namespace MMBotGA.dto
 {
     public class Info
     {
+#if Gamma
         [JsonPropertyName("Budget.current")]
         public double BudgetCurrent { get; set; }
 
@@ -21,5 +23,21 @@ namespace MMBotGA.dto
 
         [JsonPropertyName("Price.neutral")]
         public double PriceNeutral { get; set; }
+#elif Mca
+        [JsonPropertyName("Assets")]
+        public double Assets { get; set; }
+
+        [JsonPropertyName("Budget")]
+        public double Budget { get; set; }
+
+        [JsonPropertyName("Currency")]
+        public double Currency { get; set; }
+
+        [JsonPropertyName("Enter price")]
+        public double EnterPrice { get; set; }
+
+        [JsonPropertyName("Enter price sum")]
+        public double EnterPriceSum { get; set; }
+#endif
     }
 }

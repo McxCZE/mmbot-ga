@@ -13,7 +13,7 @@ namespace MMBotGA.data
                 RobotSymbol = allocationDefinition.Exchange.GetRobotSymbol(allocationDefinition.Pair),
                 Balance = allocationDefinition.Balance,
                 //Default strategy to be used - GammaChromosome - Napsat selektor ? Selektor je AdamChromsome, Definovat defaultni hodnoty pro AdamChromosome?
-                AdamChromosome = allocationDefinition.AdamChromosome ?? new GammaChromosome()
+                AdamChromosome = allocationDefinition.AdamChromosome ?? new McaChromosome()
             };
         }
     }

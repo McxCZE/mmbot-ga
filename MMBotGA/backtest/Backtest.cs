@@ -27,7 +27,7 @@ namespace MMBotGA.backtest
         {
             _api = api;
             _data = data;
-            _fitnessEvaluator = fitnessEvaluator ?? GammaFitnessFunctions.NpaRrr;
+            _fitnessEvaluator = fitnessEvaluator ?? McaFitnessFunctions.NpaRrr; //Change fit here.
         }
 
         public async Task<BacktestResult<ICollection<RunResponse>>> TestAsync(BacktestRequest request)

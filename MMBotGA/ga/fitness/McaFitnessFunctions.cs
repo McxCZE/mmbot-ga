@@ -7,7 +7,7 @@ using MMBotGA.dto;
 
 namespace MMBotGA.ga.fitness
 {
-    internal static class GammaFitnessFunctions
+    internal static class McaFitnessFunctions
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(GammaFitnessFunctions));
 
@@ -35,14 +35,14 @@ namespace MMBotGA.ga.fitness
 
             foreach (var trade in trades)
             {
-                //double pLast = trade.Info.PriceLast; //Last price, same as .pr. (I hope)
-                //double pNeutral = trade.Info.PriceNeutral; //I have no idea, whats the diff between np, and priceNeutral.
+                double pLast = trade.Pr; //Last price, same as .pr. (I hope)
+                double pNeutral = trade.Info.EnterPrice; //I have no idea, whats the diff between np, and priceNeutral.
                 double np = trade.Np; //neutral price
                 double tradeSize = trade.Sz; //tradeSize
                 double pl = trade.Pl; //profit and loss
                 double npl = trade.Npl; //normalized profit
-                //double percDiffpLastNp = PercentageDifference(pLast, np);
-                //double opPrWeight = 1.5; // 1-10 < lower the weight, more aggressive. <- Do not touch def. : 1.5
+                double percDiffpLastNp = PercentageDifference(pLast, np);
+                double opPrWeight = 1.5; // 1-10 < lower the weight, more aggressive. <- Do not touch def. : 1.5
 
                 //Explanation :
                 //If measuring diff in npl and pl in percentage, can heavily impact profit, because further down we go, the bigger 
@@ -51,7 +51,7 @@ namespace MMBotGA.ga.fitness
                 if (tradeSize != 0)
                 {
                     //f(y) = x/100 * x/(1.5-10);
-                    //deviatedTrades += (percDiffpLastNp / 100) * (percDiffpLastNp / opPrWeight);                 
+                    deviatedTrades += (percDiffpLastNp / 100) * (percDiffpLastNp / opPrWeight);
                 }
 
                 if (tradeSize == 0) { deviatedTrades += 2; }
@@ -59,7 +59,7 @@ namespace MMBotGA.ga.fitness
                 index++;
             }
 
-            
+
 
             double deviatedTradesRatio = deviatedTrades / tradesCounted;
             double deviationThresholdActual = 1 - deviatedTradesRatio;
@@ -113,9 +113,9 @@ namespace MMBotGA.ga.fitness
             var days = (last.Tm - first.Tm) / 86400000d;
             var tradesPerDay = trades / days;
 
-            if (tradesPerDay > tradesPerDayThreshold) 
-            { return false; } 
-            else 
+            if (tradesPerDay > tradesPerDayThreshold)
+            { return false; }
+            else
             { return true; } //if failed check, return true.
         }
         public static double Rrr(
@@ -147,9 +147,9 @@ namespace MMBotGA.ga.fitness
             var rrrAngleNormalized = rrrAngle / 90; // max angle. logically 90, therefore standardize to 0-1 fit scoring.
 
             return rrrAngleNormalized;
-        } 
+        }
 
-#region NotFoundUseFor
+        #region NotFoundUseFor
         private static double IncomePerDayRatio(
             ICollection<RunResponse> results
         )
@@ -194,7 +194,7 @@ namespace MMBotGA.ga.fitness
 
             return (double)goodDay / totalDays;
         }
-#endregion
+        #endregion
 
         public static FitnessComposition NpaRrr(
             BacktestRequest request,
@@ -203,15 +203,15 @@ namespace MMBotGA.ga.fitness
         {
             if (results == null || results.Count == 0) return new FitnessComposition();
 
-#region Static defined variables.
+            #region Static defined variables.
             const double rrrWeight = 0.5;
-            const double tightenNplRpnlWeight = 0.5;         
+            const double tightenNplRpnlWeight = 0.5;
             const int minimumTradesThreshold = 7; //minimum of x trades per day.
-#endregion
+            #endregion
             //var eventCheck = CheckForEvents(results); Not found use for.
             var result = new FitnessComposition();
 
-#region FitnessTriangleCalculation
+            #region FitnessTriangleCalculation
             if (ensureMinimumTradeCount(results, minimumTradesThreshold)) { result.Fitness = 0; return result; }
 
             result.RRR = rrrWeight * Rrr(results);
@@ -233,9 +233,9 @@ namespace MMBotGA.ga.fitness
 
             result.Fitness = fitnessAngle;
             return result;
-#endregion
+            #endregion
 
-#region MatasFit
+            #region MatasFit
             //var t = results.ToList();
             //if (!t.Any()) result.Fitness = 0;
 
@@ -268,7 +268,7 @@ namespace MMBotGA.ga.fitness
             //result.Fitness = minFitness;
 
             //return result;
-#endregion
+            #endregion
         }
 
         public static double Normalize(
