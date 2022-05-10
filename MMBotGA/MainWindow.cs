@@ -145,7 +145,7 @@ namespace MMBotGA
             var selection = new EliteSelection();
             var crossover = new UniformCrossover();
             var mutation = new UniformMutation(true);
-            var termination = new FitnessStagnationTermination(40);
+            var termination = new FitnessStagnationTermination(999);
             var executor = new ExactParallelTaskExecutor(apiPool.Available);
 
             var csvHandlers = new Dictionary<Tuple<Type, Type>, CsvWrapper>();

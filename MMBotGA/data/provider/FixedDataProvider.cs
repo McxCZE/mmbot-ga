@@ -18,6 +18,7 @@ namespace MMBotGA.data.provider
 
         private int lookBackBacktestDays = -365; //How far do we backtest back?
         private int lookBackControlDays = -60; //How far is the control set?
+        private int actualDateOffset = -120;
 
         protected virtual DataProviderSettings Settings => new()
         {
@@ -25,8 +26,10 @@ namespace MMBotGA.data.provider
             DateSettings = new DataProviderDateSettings
             {
                 Automatic = true,
-                Backtest = DateTimeRange.FromDiff(DateTime.UtcNow.Date, TimeSpan.FromDays(lookBackBacktestDays)),
-                Control = DateTimeRange.FromDiff(DateTime.UtcNow.Date, TimeSpan.FromDays(lookBackControlDays))
+                Backtest = DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(actualDateOffset), TimeSpan.FromDays(lookBackBacktestDays)),
+                Control = DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(actualDateOffset), TimeSpan.FromDays(lookBackControlDays))
+                //Backtest = DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(-280), TimeSpan.FromDays(-365)),
+                //Control = DateTimeRange.FromDiff(new DateTime(2022, 1, 4, 0, 0, 0, DateTimeKind.Utc), TimeSpan.FromDays(-60))
             }
         };
 
@@ -47,7 +50,7 @@ namespace MMBotGA.data.provider
             new()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("ALPHA", "PERP"),
+                Pair = new Pair("UNI", "PERP"),
                 Balance = 1000
             },
             #region AdamsFamily
@@ -121,7 +124,7 @@ namespace MMBotGA.data.provider
 
             var downloader = new DefaultDownloader(progressCallback);
             var backtestRange = Settings.DateSettings.Automatic
-                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(0), TimeSpan.FromDays(lookBackBacktestDays))
+                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(actualDateOffset), TimeSpan.FromDays(lookBackBacktestDays))
                 : Settings.DateSettings.Backtest;
 
             const int splits = 1; // No splits, fucks up Fitness
@@ -175,7 +178,7 @@ namespace MMBotGA.data.provider
         {
             var downloader = new DefaultDownloader(progressCallback);
             var controlRange = Settings.DateSettings.Automatic
-                ? DateTimeRange.FromUtcToday(TimeSpan.FromDays(lookBackControlDays))
+                ? DateTimeRange.FromDiff(DateTime.UtcNow.Date.AddDays(actualDateOffset), TimeSpan.FromDays(lookBackControlDays))
                 : Settings.DateSettings.Control;
 
             return Settings.Allocations
