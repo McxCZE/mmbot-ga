@@ -13,7 +13,7 @@ namespace MMBotGA.ga
             // max is exclusives
             BuyStrength = Factory.Create(() => RandomizationProvider.Current.GetDouble(0.01, 1));
             SellStrength = Factory.Create(() => RandomizationProvider.Current.GetDouble(0.01, 1));
-            InitBet = Factory.Create(() => RandomizationProvider.Current.GetDouble(0.1, 100));
+            InitBet = Factory.Create(() => RandomizationProvider.Current.GetDouble(0.1, 10));
 
             FinalizeGenes();
         }

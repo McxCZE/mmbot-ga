@@ -6,6 +6,7 @@ using Downloader.Core.Core;
 using MMBotGA.backtest;
 using MMBotGA.data.exchange;
 using MMBotGA.downloader;
+using MMBotGA.ga;
 //using MMBotGA.ga;
 using MMBotGA.ga.abstraction;
 using Newtonsoft.Json;
@@ -18,7 +19,7 @@ namespace MMBotGA.data.provider
 
         private int lookBackBacktestDays = -365; //How far do we backtest back?
         private int lookBackControlDays = -60; //How far is the control set?
-        private int actualDateOffset = -120;
+        private int actualDateOffset = -90; //How far from actual date we will offset back ? 
 
         protected virtual DataProviderSettings Settings => new()
         {
@@ -41,18 +42,25 @@ namespace MMBotGA.data.provider
             //    Pair = new Pair("LINK", "PERP"),
             //    Balance = 1000
             //},
-            //new()
-            //{
-            //    Exchange = Exchange.Ftx,
-            //    Pair = new Pair("ATOM", "PERP"),
-            //    Balance = 2000
-            //},
             new()
             {
                 Exchange = Exchange.Ftx,
-                Pair = new Pair("UNI", "PERP"),
+                Pair = new Pair("CAKE", "PERP"),
                 Balance = 1000
             },
+            //new()
+            //{
+            //    Exchange = Exchange.Ftx,
+            //    Pair = new Pair("SHIB", "PERP"),
+            //    Balance = 1000,
+            //    AdamChromosome = new SpreadChromosome(new dto.McaStrategy
+            //    {
+            //        Type = "mathematical_cost_averaging",
+            //        BuyStrength = 0.550d,
+            //        SellStrength = 0.999d,
+            //        InitBet = 1.0d
+            //    })
+            //},
             #region AdamsFamily
             //new()
             //{

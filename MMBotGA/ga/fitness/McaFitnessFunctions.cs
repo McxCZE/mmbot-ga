@@ -1,4 +1,5 @@
-﻿using System;
+﻿#define Matas
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using log4net;
@@ -19,13 +20,12 @@ namespace MMBotGA.ga.fitness
             return 1;
         }
 
-        public static double TightenNplRpnlSubmergedFunction(
-            ICollection<RunResponse> results,
-            int minimumTradeCountThreshold
+        public static double TightenEnterPlSubmergedFunction(
+            ICollection<RunResponse> results
         )
         {
             if (results.Count == 0) { return 0; }
-            if (ensureMinimumTradeCount(results, minimumTradeCountThreshold)) { return 0; }
+            //if (ensureMinimumTradeCount(results, minimumTradeCountThreshold)) { return 0; }
 
             double deviatedTrades = 0;
             double tradesCounted = results.Count();
@@ -37,11 +37,11 @@ namespace MMBotGA.ga.fitness
             {
                 double pLast = trade.Pr; //Last price, same as .pr. (I hope)
                 double pNeutral = trade.Info.EnterPrice; //I have no idea, whats the diff between np, and priceNeutral.
-                double np = trade.Np; //neutral price
+                //double np = trade.Np; //neutral price
                 double tradeSize = trade.Sz; //tradeSize
                 double pl = trade.Pl; //profit and loss
                 double npl = trade.Npl; //normalized profit
-                double percDiffpLastNp = PercentageDifference(pLast, np);
+                double percDiffpLastNp = PercentageDifference(pLast, pNeutral);
                 double opPrWeight = 1.5; // 1-10 < lower the weight, more aggressive. <- Do not touch def. : 1.5
 
                 //Explanation :
@@ -54,7 +54,7 @@ namespace MMBotGA.ga.fitness
                     deviatedTrades += (percDiffpLastNp / 100) * (percDiffpLastNp / opPrWeight);
                 }
 
-                if (tradeSize == 0) { deviatedTrades += 2; }
+                if (tradeSize == 0) { deviatedTrades += 1; }
 
                 index++;
             }
@@ -106,8 +106,10 @@ namespace MMBotGA.ga.fitness
             var last = results.Last();
             var first = results.First();
 
-            var trades = results.Count(x => x.Sz != 0);
-            var alerts = 1 - (results.Count - trades) / (double)results.Count;
+            double trades = results.Count(x => x.Sz != 0);
+            double alertRatio = results.Count(x => x.Sz == 0) / results.Count(); //
+            if (alertRatio > 1) return true;
+            trades = trades * alertRatio; //Make ratio.
 
             //if (trades == 0 || alerts / trades > 0.02) return false; //alerts / trades > 0.02
 
@@ -119,6 +121,30 @@ namespace MMBotGA.ga.fitness
             else
             { return true; } //if failed check, return true.
         }
+
+        private static bool ensureLowestPointSet(
+            ICollection<RunResponse> results, 
+            BacktestRequest request,
+            double lowestPoint
+        )
+        {
+            double budget = request.RunRequest.Balance;
+            //If backtest reaches the point where available currency is less then 25% of budget, stop.
+            int overBudget = results.Where(x => x.Info != null).Where(x => x.Info.Currency <= (budget * lowestPoint)).Count();
+
+            if (overBudget > 0) return true;
+            return false;
+        }
+
+        private static bool ensureAlertRatio(
+            ICollection<RunResponse> results
+        )
+        {
+            double alertRatio = results.Count(x => x.Sz == 0) / results.Count();
+            if (alertRatio > 1) return true; //For Every Trade there is an alert.
+            return false;
+        }
+
         public static double Rrr(
             ICollection<RunResponse> results
         )
@@ -204,41 +230,50 @@ namespace MMBotGA.ga.fitness
         {
             if (results == null || results.Count == 0) return new FitnessComposition();
 
-            #region Static defined variables.
-            //const double rrrWeight = 1;
-            //const double tightenNplRpnlWeight = 0;
-            //const int minimumTradesThreshold = 7; //minimum of x trades per day.
-            #endregion
+#if Triangle
+            const double rrrWeight = 0.5;
+            const double tightenEnterPlWeight = 0.5;
+            //const int minimumTradesThreshold = 4; // minimum of x trades per day.
+            const double lowestPoint = 0.25; // <- Lower more aggresive trading.
             //var eventCheck = CheckForEvents(results); Not found use for.
             var result = new FitnessComposition();
 
             #region FitnessTriangleCalculation
             //if (ensureMinimumTradeCount(results, minimumTradesThreshold)) { result.Fitness = 0; return result; }
+            if (ensureAlertRatio(results)) { result.Fitness = 0; return result; }
+            if (ensureLowestPointSet(results, request, lowestPoint)) { result.Fitness = 0; return result; }
 
-            //result.RRR = rrrWeight * Rrr(results);
-            //if (result.RRR <= 0) { result.Fitness = 0; return result; } //Nonsense to continue. Escape routine.
-            ////result.TightenNplRpnl = tightenNplRpnlWeight * TightenNplRpnlSubmergedFunction(results, minimumTradesThreshold);
-            ////if (result.TightenNplRpnl <= 0) { result.Fitness = 0; return result; } //Nonsense to continue. Escape routine.
-            //result.PnlProfitPerYear = PnlProfitPerYear(request, results);
-            //if (result.PnlProfitPerYear <= 0) { result.Fitness = 0; return result; } //Nonsense to continue. Escape routine.
+            result.RRR = rrrWeight * Rrr(results);
+            if (result.RRR <= 0) { result.Fitness = 0; return result; } //Nonsense to continue. Escape routine.
+            result.TightenNplRpnl = tightenEnterPlWeight * TightenEnterPlSubmergedFunction(results);
+            //if (result.TightenNplRpnl <= 0) { result.Fitness = 0; return result; } //Nonsense to continue. Escape routine.
+            result.PnlProfitPerYear = PnlProfitPerYear(request, results);
+            if (result.PnlProfitPerYear <= 0) { result.Fitness = 0; return result; } //Nonsense to continue. Escape routine.
 
-            //result.rrrTightenCombined = result.RRR + result.TightenNplRpnl;
+            result.rrrTightenCombined = result.RRR + result.TightenNplRpnl;
 
-            //var interval = results.Last().Tm - results.First().Tm;
-            //var backtestDays = (interval / 86400000d);
-            //var penalization = backtestDays * (result.rrrTightenCombined);// + result.RRR);
+            var interval = results.Last().Tm - results.First().Tm;
+            var backtestDays = (interval / 86400000d);
+            var penalization = backtestDays * (result.rrrTightenCombined);// + result.RRR);
 
-            //double xDiff = backtestDays - (penalization);
-            //double yDiff = result.PnlProfitPerYear;
-            //var fitnessAngle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
+            double xDiff = backtestDays - (penalization);
+            double yDiff = result.PnlProfitPerYear;
+            var fitnessAngle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
 
-            //result.Fitness = fitnessAngle;
-            //return result;
+            result.Fitness = fitnessAngle;
+            return result;
             #endregion
 
+#elif Matas
+
             #region MatasFit
+            var result = new FitnessComposition();
+
             var t = results.ToList();
             if (!t.Any()) result.Fitness = 0;
+            if (ensureAlertRatio(results)) { result.Fitness = 0; return result; }
+            //if (ensureLowestPointSet(results, request, lowestPoint)) { result.Fitness = 0; return result; }
+
 
             // continuity -> stable performance and delivery of budget extra
             // get profit at least every 14 days
@@ -256,19 +291,14 @@ namespace MMBotGA.ga.fitness
                     .TakeWhile(x => x.Tm < f1)
                     .ToList();
 
-                //var currentBudgetExtra = frameTrades.LastOrDefault()?.Ubal ?? lastBudgetExtra;
+                //double pCalcFirstTrade = frameTrades.FirstOrDefault()?.Bal ?? 0;
+                //double pCalcLastTrade = frameTrades.LastOrDefault()?.Bal ?? 0;
 
+                double profit = PnlProfitPerYear(request, frameTrades);
 
-                //var last = frameTrades.LastOrDefault();
-                //var first = frameTrades.FirstOrDefault();
-
-                //var interval = last.Tm - first.Tm;
-
-                var profit = frameTrades.LastOrDefault()?.Upnl ?? lastProfit;
-
-                //var tradeFactor = 1; // TradeCountFactor(frameTrades);
-                //var fitness = (profit - lastProfit);
+                //var profit = pCalcLastTrade - pCalcFirstTrade;
                 var fitness = profit - lastProfit;
+
                 if (fitness < minFitness) // <
                 {
                     minFitness = fitness;
@@ -280,9 +310,11 @@ namespace MMBotGA.ga.fitness
 
             return result;
             #endregion
+#endif
+
         }
 
-        #region GeneralFunctions
+#region GeneralFunctions
         public static double Normalize(
             double value,
             double target,
@@ -316,6 +348,6 @@ namespace MMBotGA.ga.fitness
 
             return 0;
         }
-        #endregion
+#endregion
     }
 }
