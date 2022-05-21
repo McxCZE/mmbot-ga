@@ -1,4 +1,4 @@
-﻿#define Matas
+﻿#define Matasx
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -237,7 +237,6 @@ namespace MMBotGA.ga.fitness
             const double lowestPoint = 0.25; // <- Lower more aggresive trading.
             //var eventCheck = CheckForEvents(results); Not found use for.
             var result = new FitnessComposition();
-
             #region FitnessTriangleCalculation
             //if (ensureMinimumTradeCount(results, minimumTradesThreshold)) { result.Fitness = 0; return result; }
             if (ensureAlertRatio(results)) { result.Fitness = 0; return result; }
@@ -265,19 +264,19 @@ namespace MMBotGA.ga.fitness
             #endregion
 
 #elif Matas
-
             #region MatasFit
             var result = new FitnessComposition();
 
             var t = results.ToList();
             if (!t.Any()) result.Fitness = 0;
             if (ensureAlertRatio(results)) { result.Fitness = 0; return result; }
+            if (t.Where(x => x.Info != null).Where(x => x.Info.Currency < 0).Count() > 0) { result.Fitness = 0; return result; }
             //if (ensureLowestPointSet(results, request, lowestPoint)) { result.Fitness = 0; return result; }
 
 
             // continuity -> stable performance and delivery of budget extra
             // get profit at least every 14 days
-            var frames = (int)(TimeSpan.FromMilliseconds(results.Last().Tm).TotalDays / 14);
+            var frames = (int)(TimeSpan.FromMilliseconds(results.Last().Tm).TotalDays / 31);
             var gk = results.Last().Tm / frames;
             var lastProfit = 0d;
             var minFitness = double.MaxValue;
@@ -295,7 +294,6 @@ namespace MMBotGA.ga.fitness
                 //double pCalcLastTrade = frameTrades.LastOrDefault()?.Bal ?? 0;
 
                 double profit = PnlProfitPerYear(request, frameTrades);
-
                 //var profit = pCalcLastTrade - pCalcFirstTrade;
                 var fitness = profit - lastProfit;
 
@@ -310,11 +308,19 @@ namespace MMBotGA.ga.fitness
 
             return result;
             #endregion
+#else
+#region DumbFit
+            var result = new FitnessComposition();
+            if (ensureAlertRatio(results)) { result.Fitness = 0; return result; }
+            if (results.Where(x => x.Info != null).Where(x => x.Info.Currency < 0).Count() > 0) { result.Fitness = 0; return result; }
+            result.Fitness = PnlProfitPerYear(request, results);
+            return result;
+#endregion
 #endif
 
         }
 
-#region GeneralFunctions
+        #region GeneralFunctions
         public static double Normalize(
             double value,
             double target,
